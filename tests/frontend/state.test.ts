@@ -14,7 +14,7 @@ describe("state helpers", () => {
       speciesId: "spotted",
       metric: "cpue",
       areaMode: "regions",
-      selectedRegions: ["Florida Bay / Cape Sable", "Whitewater Bay", "Gulf Coast"],
+      selectedRegions: [],
       selectedAreas: [],
       startYear: 2005,
       endYear: 2024
@@ -23,9 +23,18 @@ describe("state helpers", () => {
 
   it("round-trips supported query parameters", () => {
     const parsed = stateFromUrl(metadata, "?species=red&metric=catch&area=detailed&regions=Gulf+Coast&areas=6N,6C&start=2010&end=2020");
-    expect(parsed).toMatchObject({ speciesId: "red", metric: "catch", areaMode: "detailed", selectedAreas: ["6N", "6C"] });
+    expect(parsed).toMatchObject({ speciesId: "red", metric: "catch", areaMode: "detailed", selectedRegions: ["Gulf Coast"], selectedAreas: ["6N", "6C"] });
     expect(toQuery(parsed)).toContain("species=red");
     expect(toQuery(parsed)).toContain("areas=6N%2C6C");
+  });
+
+  it("normalizes all selected regions to no active filter", () => {
+    const parsed = stateFromUrl(
+      metadata,
+      "?regions=Florida+Bay+%2F+Cape+Sable,Whitewater+Bay,Gulf+Coast"
+    );
+    expect(parsed.selectedRegions).toEqual([]);
+    expect(toQuery(parsed)).not.toContain("regions=");
   });
 
   it("supports legacy single-detail links", () => {

@@ -14,6 +14,11 @@ const layoutBase: Partial<Plotly.Layout> = {
   font: { family: "Inter, system-ui, sans-serif", color: "#e6f0ea" },
   margin: { t: 34, r: 24, b: 52, l: 62 },
   hovermode: "x unified",
+  hoverlabel: {
+    bgcolor: "#ffffff",
+    bordercolor: "#1f2937",
+    font: { color: "#111827", family: "Inter, system-ui, sans-serif", size: 13 }
+  },
   legend: { orientation: "h", y: -0.24, font: { color: "#d7e6de" } },
   xaxis: { gridcolor: "rgba(173, 198, 188, 0.22)", zerolinecolor: "rgba(173, 198, 188, 0.32)" },
   yaxis: { gridcolor: "rgba(173, 198, 188, 0.22)", zerolinecolor: "rgba(173, 198, 188, 0.32)" }

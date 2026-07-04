@@ -42,13 +42,14 @@ export function recordsForState(data: DashboardData, state: DashboardState): Dis
 }
 
 function regionRecords(records: AnnualRecord[], coverageRows: CoverageRegion[], state: DashboardState, regions: string[]): DisplayRecord[] {
+  const activeRegions = regions.length ? regions : [...new Set(coverageRows.map((row) => row.broad_region))];
   const catchLookup = new Map(
     records
       .filter((record) => record.species_id === state.speciesId)
       .map((record) => [`${record.year}|${record.broad_region}`, record])
   );
   return coverageRows
-    .filter((row) => regions.includes(row.broad_region))
+    .filter((row) => activeRegions.includes(row.broad_region))
     .map((row) => {
       const catchRecord = catchLookup.get(`${row.year}|${row.broad_region}`);
       return catchRecord ? annualRecordToDisplay(catchRecord, state.metric) : coverageToDisplay(row, state.metric);

@@ -368,6 +368,16 @@ legend,
   min-height: 470px;
 }
 
+.hoverlayer .hovertext path,
+.hoverlayer .spikeline {
+  fill: #ffffff !important;
+  stroke: #1f2937 !important;
+}
+
+.hoverlayer .hovertext text {
+  fill: #111827 !important;
+}
+
 .compact-chart {
   min-height: 380px;
 }
@@ -427,6 +437,21 @@ legend,
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid #36524a;
+}
+
+.leaflet-tooltip,
+.leaflet-popup-content-wrapper {
+  background: #ffffff;
+  color: #111827;
+}
+
+.leaflet-tooltip {
+  border-color: #cbd5e1;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+}
+
+.leaflet-popup-tip {
+  background: #ffffff;
 }
 
 .map-table {

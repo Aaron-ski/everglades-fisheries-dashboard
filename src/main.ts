@@ -108,6 +108,18 @@ function renderShell(): void {
         <button id="resetButton" type="button">Reset</button>
       </section>
       <section id="warnings" class="warnings" aria-live="polite"></section>
+      <section class="panel map-panel">
+        <div class="section-heading">
+          <h2>Fishing-area map</h2>
+          <p>Fishing-area polygons represent where anglers reported fishing. Point markers are omitted because the source package does not provide authoritative coordinates.</p>
+        </div>
+        <div class="map-actions">
+          <button id="showAllAreasButton" type="button">Show all areas</button>
+          <span class="legend"><span class="legend-missing"></span> missing data <span class="legend-zero"></span> zero value <span class="legend-fill"></span> higher value</span>
+        </div>
+        <div id="map" class="map" aria-label="Interactive map of Everglades fishing areas"></div>
+        <div id="mapTable" class="map-table"></div>
+      </section>
       <section id="cards" class="cards" aria-label="Key metrics"></section>
       <section class="panel">
         <div class="section-heading">
@@ -127,18 +139,6 @@ function renderShell(): void {
           <p>Harvested and released counts are shown only where the source disposition field supports them.</p>
           <div id="keptChart" class="chart compact-chart" role="img" aria-label="Kept and released chart"></div>
         </div>
-      </section>
-      <section class="panel">
-        <div class="section-heading">
-          <h2>Fishing-area map</h2>
-          <p>Fishing-area polygons represent where anglers reported fishing. Point markers are omitted because the source package does not provide authoritative coordinates.</p>
-        </div>
-        <div class="map-actions">
-          <button id="showAllAreasButton" type="button">Show all areas</button>
-          <span class="legend"><span class="legend-missing"></span> missing data <span class="legend-zero"></span> zero value <span class="legend-fill"></span> higher value</span>
-        </div>
-        <div id="map" class="map" aria-label="Interactive map of Everglades fishing areas"></div>
-        <div id="mapTable" class="map-table"></div>
       </section>
       <section class="panel takeaways">
         <h2>Quick takeaways</h2>
@@ -349,5 +349,5 @@ function mapRecordsForLatestYear(latestYear: number): DisplayRecord[] {
   };
   return recordsForState(data, mapState)
     .filter((record) => record.year === latestYear && record.areaCode)
-    .filter((record) => state.areaMode === "detailed" || state.selectedRegions.includes(record.broadRegion));
+    .filter((record) => state.areaMode === "detailed" || state.selectedRegions.length === 0 || state.selectedRegions.includes(record.broadRegion));
 }
