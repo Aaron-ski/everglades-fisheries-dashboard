@@ -1,8 +1,9 @@
 :root {
-  color: #17201a;
-  background: #f3f7f4;
+  color: #e6f0ea;
+  background: #071412;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   line-height: 1.5;
+  color-scheme: dark;
 }
 
 * {
@@ -15,7 +16,7 @@ body {
 }
 
 a {
-  color: #155e75;
+  color: #8bd9c3;
 }
 
 button,
@@ -29,19 +30,23 @@ button,
 select,
 input {
   min-height: 44px;
-  border: 1px solid #9aa89e;
+  border: 1px solid #36524a;
   border-radius: 6px;
-  background: #ffffff;
-  color: #17201a;
+  background: #0f241f;
+  color: #e6f0ea;
 }
 
 button {
   cursor: pointer;
   padding: 0 16px;
-  background: #174b42;
+  background: #23a37f;
   color: #ffffff;
-  border-color: #174b42;
+  border-color: #23a37f;
   font-weight: 700;
+}
+
+button:hover {
+  background: #2fbd96;
 }
 
 button:focus-visible,
@@ -49,7 +54,7 @@ select:focus-visible,
 input:focus-visible,
 summary:focus-visible,
 a:focus-visible {
-  outline: 3px solid #f0b45a;
+  outline: 3px solid #f2c365;
   outline-offset: 3px;
 }
 
@@ -57,7 +62,7 @@ a:focus-visible {
   position: absolute;
   left: 12px;
   top: -60px;
-  background: #ffffff;
+  background: #0f241f;
   padding: 8px 12px;
   z-index: 1000;
 }
@@ -71,7 +76,7 @@ a:focus-visible {
   justify-content: space-between;
   gap: 24px;
   padding: 34px clamp(18px, 5vw, 60px);
-  background: #123f38;
+  background: #061210;
   color: #f8fbf8;
 }
 
@@ -80,7 +85,7 @@ a:focus-visible {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 800;
-  color: #b9d7cb;
+  color: #83cfba;
 }
 
 h1 {
@@ -110,7 +115,7 @@ h2 {
 }
 
 .header-meta a {
-  color: #ffffff;
+  color: #c9f4e7;
   font-weight: 700;
 }
 
@@ -133,10 +138,12 @@ main {
 .methodology,
 .panel {
   background: #ffffff;
-  border: 1px solid #d8e0da;
+  color: #e6f0ea;
+  background: #0c1d19;
+  border: 1px solid #213a34;
   border-radius: 8px;
   padding: 18px;
-  box-shadow: 0 1px 4px rgba(23, 32, 26, 0.08);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
 }
 
 summary {
@@ -146,11 +153,11 @@ summary {
 
 .filters {
   display: grid;
-  grid-template-columns: minmax(220px, 2fr) repeat(5, minmax(130px, 1fr)) auto;
+  grid-template-columns: minmax(220px, 1.2fr) minmax(180px, 0.8fr) minmax(190px, 0.8fr) auto;
   gap: 12px;
   align-items: end;
-  background: #e7efe9;
-  border: 1px solid #c7d5cc;
+  background: #0b211d;
+  border: 1px solid #23443b;
   border-radius: 8px;
   padding: 14px;
 }
@@ -168,11 +175,148 @@ select {
   padding: 0 10px;
 }
 
+fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+legend,
+.timeline-heading span {
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+.multi-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  grid-column: 1 / -1;
+}
+
+.multi-filter[hidden] {
+  display: none;
+}
+
+.multi-filter legend {
+  flex: 0 0 100%;
+}
+
+.area-check-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+
+.check-option {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid #36524a;
+  border-radius: 6px;
+  background: #102c26;
+  color: #d7e6de;
+  cursor: pointer;
+}
+
+.check-option input {
+  width: 18px;
+  min-height: 18px;
+  accent-color: #23a37f;
+}
+
+.check-option:has(input:checked) {
+  border-color: #2fbd96;
+  background: #16483c;
+  color: #ffffff;
+}
+
+.timeline-filter {
+  grid-column: 1 / -1;
+  padding: 14px;
+  border: 1px solid #36524a;
+  border-radius: 8px;
+  background: #0f241f;
+}
+
+.timeline-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.timeline-heading strong {
+  color: #f2c365;
+}
+
+.timeline-track {
+  position: relative;
+  height: 44px;
+}
+
+.timeline-track input[type="range"] {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 8px;
+  width: 100%;
+  min-height: 28px;
+  padding: 0;
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+}
+
+.timeline-track::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 21px;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #23443b, #23a37f);
+}
+
+.timeline-track input[type="range"]::-webkit-slider-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid #071412;
+  background: #f2c365;
+  appearance: none;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.timeline-track input[type="range"]::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid #071412;
+  background: #f2c365;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.timeline-scale {
+  display: flex;
+  justify-content: space-between;
+  color: #9db9af;
+  font-size: 0.82rem;
+}
+
 .warnings p {
   margin: 0 0 8px;
   padding: 10px 12px;
-  border-left: 5px solid #b7791f;
-  background: #fff7e8;
+  border-left: 5px solid #f2c365;
+  background: #241c0e;
+  color: #f6e7c5;
 }
 
 .cards {
@@ -182,8 +326,8 @@ select {
 }
 
 .card {
-  background: #ffffff;
-  border: 1px solid #d8e0da;
+  background: #0c1d19;
+  border: 1px solid #213a34;
   border-radius: 8px;
   padding: 16px;
 }
@@ -191,7 +335,7 @@ select {
 .card span,
 .card small {
   display: block;
-  color: #4d5d53;
+  color: #9db9af;
   font-weight: 800;
 }
 
@@ -216,7 +360,7 @@ select {
 .section-heading p {
   margin: 0;
   max-width: 620px;
-  color: #4d5d53;
+  color: #9db9af;
 }
 
 .chart {
@@ -248,6 +392,7 @@ select {
   gap: 8px;
   align-items: center;
   color: #4d5d53;
+  color: #9db9af;
 }
 
 .legend span {
@@ -281,7 +426,7 @@ select {
   min-height: 360px;
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid #c7d5cc;
+  border: 1px solid #36524a;
 }
 
 .map-table {
@@ -303,13 +448,13 @@ caption {
 
 th,
 td {
-  border-bottom: 1px solid #d8e0da;
+  border-bottom: 1px solid #263f38;
   padding: 9px;
   text-align: left;
 }
 
 th {
-  background: #eef4ef;
+  background: #132d27;
 }
 
 .takeaways ul {
@@ -321,7 +466,7 @@ th {
 .error-state,
 .loading {
   padding: 24px;
-  background: #ffffff;
+  background: #0c1d19;
   border-radius: 8px;
 }
 
@@ -330,6 +475,10 @@ th {
   .cards,
   .split {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .area-check-grid {
+    grid-template-columns: repeat(2, minmax(180px, 1fr));
   }
 }
 
@@ -348,6 +497,10 @@ th {
   .filters,
   .cards,
   .split {
+    grid-template-columns: 1fr;
+  }
+
+  .area-check-grid {
     grid-template-columns: 1fr;
   }
 

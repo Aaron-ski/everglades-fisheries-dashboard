@@ -10,11 +10,13 @@ const plotConfig: Partial<Plotly.Config> = {
 
 const layoutBase: Partial<Plotly.Layout> = {
   paper_bgcolor: "rgba(0,0,0,0)",
-  plot_bgcolor: "rgba(255,255,255,0.92)",
-  font: { family: "Inter, system-ui, sans-serif", color: "#17201a" },
+  plot_bgcolor: "rgba(6, 20, 18, 0.96)",
+  font: { family: "Inter, system-ui, sans-serif", color: "#e6f0ea" },
   margin: { t: 34, r: 24, b: 52, l: 62 },
   hovermode: "x unified",
-  legend: { orientation: "h", y: -0.24 }
+  legend: { orientation: "h", y: -0.24, font: { color: "#d7e6de" } },
+  xaxis: { gridcolor: "rgba(173, 198, 188, 0.22)", zerolinecolor: "rgba(173, 198, 188, 0.32)" },
+  yaxis: { gridcolor: "rgba(173, 198, 188, 0.22)", zerolinecolor: "rgba(173, 198, 188, 0.32)" }
 };
 
 export function renderTrendChart(element: HTMLElement, records: DisplayRecord[], metric: MetricKey): void {
@@ -50,8 +52,8 @@ export function renderTrendChart(element: HTMLElement, records: DisplayRecord[],
   }
   Plotly.react(element, traces, {
     ...layoutBase,
-    yaxis: { title: { text: `${metricLabels[metric]} (${metricUnits[metric]})` }, rangemode: "tozero" },
-    xaxis: { title: { text: "Year" }, dtick: 2 },
+    yaxis: darkAxis(`${metricLabels[metric]} (${metricUnits[metric]})`, true),
+    xaxis: darkAxis("Year", false, 2),
     shapes: partialYearShapes(records)
   }, plotConfig);
 }
@@ -72,8 +74,8 @@ export function renderEffortChart(element: HTMLElement, records: DisplayRecord[]
   Plotly.react(element, traces, {
     ...layoutBase,
     barmode: "group",
-    yaxis: { title: { text: "Angler-hours" }, rangemode: "tozero" },
-    xaxis: { title: { text: "Year" }, dtick: 2 }
+    yaxis: darkAxis("Angler-hours", true),
+    xaxis: darkAxis("Year", false, 2)
   }, plotConfig);
 }
 
@@ -123,9 +125,9 @@ export function renderKeptReleasedChart(element: HTMLElement, records: DisplayRe
   ], {
     ...layoutBase,
     barmode: "stack",
-    yaxis: { title: { text: "Fish" }, rangemode: "tozero" },
-    yaxis2: { title: { text: "Release rate (%)" }, overlaying: "y", side: "right", rangemode: "tozero" },
-    xaxis: { title: { text: "Year" }, dtick: 2 }
+    yaxis: darkAxis("Fish", true),
+    yaxis2: { ...darkAxis("Release rate (%)", true), overlaying: "y", side: "right" },
+    xaxis: darkAxis("Year", false, 2)
   }, plotConfig);
 }
 
@@ -148,7 +150,20 @@ function partialYearShapes(records: DisplayRecord[]): Partial<Plotly.Shape>[] {
     x1: year + 0.45,
     y0: 0,
     y1: 1,
-    fillcolor: "rgba(166, 115, 44, 0.14)",
+      fillcolor: "rgba(240, 180, 90, 0.16)",
     line: { width: 0 }
   }));
+}
+
+function darkAxis(title: string, toZero: boolean, dtick?: number): Partial<Plotly.LayoutAxis> {
+  return {
+    title: { text: title },
+    rangemode: toZero ? "tozero" : undefined,
+    dtick,
+    color: "#d7e6de",
+    gridcolor: "rgba(173, 198, 188, 0.22)",
+    zerolinecolor: "rgba(173, 198, 188, 0.32)",
+    linecolor: "rgba(173, 198, 188, 0.38)",
+    tickfont: { color: "#d7e6de" }
+  };
 }

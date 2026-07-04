@@ -2,7 +2,6 @@ import { annualRecordToDisplay, coverageToDisplay } from "./metrics";
 import type {
   AnnualAreaRecord,
   AnnualRecord,
-  AreaMode,
   CoverageArea,
   CoverageRegion,
   DashboardData,
@@ -35,17 +34,11 @@ export function speciesById(species: Species[]): Map<string, Species> {
   return new Map(species.map((item) => [item.species_id, item]));
 }
 
-function regionLabelsForMode(mode: AreaMode, metadataRegions: string[]): string[] {
-  if (mode === "regions") return metadataRegions;
-  if (mode === "detailed") return [];
-  return [mode];
-}
-
 export function recordsForState(data: DashboardData, state: DashboardState): DisplayRecord[] {
   if (state.areaMode === "detailed") {
     return detailedRecords(data.areaRecords, data.coverage.area, state);
   }
-  return regionRecords(data.regionRecords, data.coverage.region, state, regionLabelsForMode(state.areaMode, data.metadata.regions));
+  return regionRecords(data.regionRecords, data.coverage.region, state, state.selectedRegions);
 }
 
 function regionRecords(records: AnnualRecord[], coverageRows: CoverageRegion[], state: DashboardState, regions: string[]): DisplayRecord[] {
@@ -69,7 +62,7 @@ function detailedRecords(records: AnnualAreaRecord[], coverageRows: CoverageArea
       .map((record) => [`${record.year}|${record.area_code}`, record])
   );
   return coverageRows
-    .filter((row) => state.detailedArea === "all" || row.area_code === state.detailedArea)
+    .filter((row) => state.selectedAreas.length === 0 || state.selectedAreas.includes(row.area_code))
     .map((row) => {
       const catchRecord = catchLookup.get(`${row.year}|${row.area_code}`);
       return catchRecord ? annualRecordToDisplay(catchRecord, state.metric) : coverageToDisplay(row, state.metric);

@@ -34,6 +34,9 @@ async function init(): Promise<void> {
 function renderShell(): void {
   const species = speciesById(data.species).get(state.speciesId);
   const processed = new Date(data.metadata.processed_at).toLocaleDateString();
+  const minYear = data.metadata.date_coverage.unique_years[0];
+  const maxYear = data.metadata.date_coverage.unique_years.at(-1) ?? data.metadata.date_coverage.default_end_year;
+  const areaOptions = detailedAreaOptions(data);
   app.innerHTML = `
     <header class="site-header">
       <div>
@@ -65,25 +68,43 @@ function renderShell(): void {
         </label>
         <label>Area
           <select id="areaModeSelect">
-            <option value="regions">All broad regions</option>
-            <option value="Florida Bay / Cape Sable">Florida Bay / Cape Sable</option>
-            <option value="Whitewater Bay">Whitewater Bay</option>
-            <option value="Gulf Coast">Gulf Coast</option>
+            <option value="regions">Broad regions</option>
             <option value="detailed">Detailed coded fishing areas</option>
           </select>
         </label>
-        <label id="detailedAreaWrap">Detailed area
-          <select id="detailedAreaSelect">
-            <option value="all">All mapped detailed areas</option>
-            ${detailedAreaOptions(data).map((area) => `<option value="${area.code}">${area.code} - ${escapeHtml(area.name)}</option>`).join("")}
-          </select>
-        </label>
-        <label>Start year
-          <input id="startYearInput" type="number" min="${data.metadata.date_coverage.unique_years[0]}" max="${data.metadata.date_coverage.unique_years.at(-1)}" />
-        </label>
-        <label>End year
-          <input id="endYearInput" type="number" min="${data.metadata.date_coverage.unique_years[0]}" max="${data.metadata.date_coverage.unique_years.at(-1)}" />
-        </label>
+        <fieldset id="regionFilterWrap" class="multi-filter">
+          <legend>Broad regions</legend>
+          ${data.metadata.regions.map((region) => `
+            <label class="check-option">
+              <input type="checkbox" name="regionFilter" value="${escapeHtml(region)}" />
+              <span>${escapeHtml(region)}</span>
+            </label>
+          `).join("")}
+        </fieldset>
+        <fieldset id="detailedAreaWrap" class="multi-filter">
+          <legend>Detailed areas</legend>
+          <div class="area-check-grid">
+            ${areaOptions.map((area) => `
+              <label class="check-option">
+                <input type="checkbox" name="areaFilter" value="${area.code}" />
+                <span>${area.code} - ${escapeHtml(area.name)}</span>
+              </label>
+            `).join("")}
+          </div>
+        </fieldset>
+        <div class="timeline-filter" aria-label="Year timeline filter">
+          <div class="timeline-heading">
+            <span>Year range</span>
+            <strong id="yearRangeLabel">${state.startYear}-${state.endYear}</strong>
+          </div>
+          <div class="timeline-track">
+            <input id="startYearRange" aria-label="Start year" type="range" min="${minYear}" max="${maxYear}" step="1" />
+            <input id="endYearRange" aria-label="End year" type="range" min="${minYear}" max="${maxYear}" step="1" />
+          </div>
+          <div class="timeline-scale" aria-hidden="true">
+            ${[1980, 1990, 2000, 2010, 2020, 2025].filter((year) => year >= minYear && year <= maxYear).map((year) => `<span>${year}</span>`).join("")}
+          </div>
+        </div>
         <button id="resetButton" type="button">Reset</button>
       </section>
       <section id="warnings" class="warnings" aria-live="polite"></section>
@@ -144,9 +165,9 @@ function renderShell(): void {
     </main>
   `;
 
-  fisheriesMap = new FisheriesMap(document.querySelector("#map") as HTMLElement, data.areasGeojson, (areaCode) => {
+  fisheriesMap = new FisheriesMap(document.querySelector("#map") as HTMLElement, data.areasGeojson, (areaCode, additive) => {
     state.areaMode = "detailed";
-    state.detailedArea = areaCode;
+    state.selectedAreas = nextSelectedAreas(areaCode, additive);
     syncControls();
     update();
   });
@@ -167,16 +188,24 @@ function bindControls(): void {
     state.areaMode = (event.target as HTMLSelectElement).value as DashboardState["areaMode"];
     update();
   });
-  document.querySelector<HTMLSelectElement>("#detailedAreaSelect")!.addEventListener("change", (event) => {
-    state.detailedArea = (event.target as HTMLSelectElement).value;
-    update();
+  document.querySelectorAll<HTMLInputElement>('input[name="regionFilter"]').forEach((input) => {
+    input.addEventListener("change", () => {
+      state.selectedRegions = checkedValues("regionFilter");
+      update();
+    });
   });
-  document.querySelector<HTMLInputElement>("#startYearInput")!.addEventListener("change", (event) => {
+  document.querySelectorAll<HTMLInputElement>('input[name="areaFilter"]').forEach((input) => {
+    input.addEventListener("change", () => {
+      state.selectedAreas = checkedValues("areaFilter");
+      update();
+    });
+  });
+  document.querySelector<HTMLInputElement>("#startYearRange")!.addEventListener("input", (event) => {
     state.startYear = Number((event.target as HTMLInputElement).value);
     if (state.startYear > state.endYear) state.endYear = state.startYear;
     update();
   });
-  document.querySelector<HTMLInputElement>("#endYearInput")!.addEventListener("change", (event) => {
+  document.querySelector<HTMLInputElement>("#endYearRange")!.addEventListener("input", (event) => {
     state.endYear = Number((event.target as HTMLInputElement).value);
     if (state.endYear < state.startYear) state.startYear = state.endYear;
     update();
@@ -187,7 +216,7 @@ function bindControls(): void {
   });
   document.querySelector<HTMLButtonElement>("#showAllAreasButton")!.addEventListener("click", () => {
     state.areaMode = "detailed";
-    state.detailedArea = "all";
+    state.selectedAreas = [];
     update();
   });
 }
@@ -197,9 +226,17 @@ function syncControls(): void {
   document.querySelector<HTMLInputElement>("#speciesInput")!.value = species?.display_name ?? "";
   document.querySelector<HTMLSelectElement>("#metricSelect")!.value = state.metric;
   document.querySelector<HTMLSelectElement>("#areaModeSelect")!.value = state.areaMode;
-  document.querySelector<HTMLSelectElement>("#detailedAreaSelect")!.value = state.detailedArea;
-  document.querySelector<HTMLInputElement>("#startYearInput")!.value = String(state.startYear);
-  document.querySelector<HTMLInputElement>("#endYearInput")!.value = String(state.endYear);
+  document.querySelectorAll<HTMLInputElement>('input[name="regionFilter"]').forEach((input) => {
+    input.checked = state.selectedRegions.includes(input.value);
+  });
+  document.querySelectorAll<HTMLInputElement>('input[name="areaFilter"]').forEach((input) => {
+    input.checked = state.selectedAreas.includes(input.value);
+  });
+  document.querySelector<HTMLInputElement>("#startYearRange")!.value = String(state.startYear);
+  document.querySelector<HTMLInputElement>("#endYearRange")!.value = String(state.endYear);
+  document.querySelector("#yearRangeLabel")!.textContent = `${state.startYear}-${state.endYear}`;
+  const regionWrap = document.querySelector<HTMLElement>("#regionFilterWrap")!;
+  regionWrap.hidden = state.areaMode !== "regions";
   document.querySelector<HTMLElement>("#detailedAreaWrap")!.hidden = state.areaMode !== "detailed";
 }
 
@@ -215,12 +252,15 @@ function update(): void {
   renderKeptReleasedChart(document.querySelector("#keptChart") as HTMLElement, records);
   document.querySelector("#trendSummary")!.textContent = summarizeChart(records, state.metric);
   renderTakeaways(records);
-  renderMap(records);
+  renderMap();
   fisheriesMap?.invalidate();
 }
 
 function renderWarnings(records: DisplayRecord[]): void {
   const warnings = new Set<string>();
+  if (records.length === 0) {
+    warnings.add("No data for the active area selection. Select at least one region or area.");
+  }
   if (state.endYear === 2025 || records.some((record) => record.isPartialYear)) {
     warnings.add("2025 is a partial year in the source package and should not be compared directly with full-year totals.");
   }
@@ -263,10 +303,10 @@ function renderTakeaways(records: DisplayRecord[]): void {
   document.querySelector("#takeaways")!.innerHTML = takeaways.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
 }
 
-function renderMap(records: DisplayRecord[]): void {
+function renderMap(): void {
   const latestYear = latestCompleteYear(data, state.endYear);
-  const mapRecords = records.filter((record) => record.year === latestYear && record.areaCode);
-  fisheriesMap?.update(mapRecords, state.metric, state.detailedArea);
+  const mapRecords = mapRecordsForLatestYear(latestYear);
+  fisheriesMap?.update(mapRecords, state.metric, state.selectedAreas);
   const rows = mapRecords
     .sort((a, b) => a.label.localeCompare(b.label))
     .map(
@@ -277,11 +317,37 @@ function renderMap(records: DisplayRecord[]): void {
     <table>
       <caption>Mapped area values for ${latestYear}</caption>
       <thead><tr><th>Area</th><th>${metricLabels[state.metric]}</th><th>Catch</th><th>Effort</th><th>Coverage</th></tr></thead>
-      <tbody>${rows || '<tr><td colspan="5">Switch to detailed coded fishing-area mode to compare mapped areas.</td></tr>'}</tbody>
+      <tbody>${rows || '<tr><td colspan="5">No mapped areas match the active selection.</td></tr>'}</tbody>
     </table>
   `;
 }
 
 function escapeHtml(value: string): string {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+}
+
+function checkedValues(name: string): string[] {
+  return [...document.querySelectorAll<HTMLInputElement>(`input[name="${name}"]:checked`)].map((input) => input.value);
+}
+
+function nextSelectedAreas(areaCode: string, additive: boolean): string[] {
+  if (!additive) return [areaCode];
+  const selected = new Set(state.selectedAreas);
+  if (selected.has(areaCode)) {
+    selected.delete(areaCode);
+  } else {
+    selected.add(areaCode);
+  }
+  return [...selected];
+}
+
+function mapRecordsForLatestYear(latestYear: number): DisplayRecord[] {
+  const mapState: DashboardState = {
+    ...state,
+    areaMode: "detailed",
+    selectedAreas: state.areaMode === "detailed" ? state.selectedAreas : []
+  };
+  return recordsForState(data, mapState)
+    .filter((record) => record.year === latestYear && record.areaCode)
+    .filter((record) => state.areaMode === "detailed" || state.selectedRegions.includes(record.broadRegion));
 }

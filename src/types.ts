@@ -1,6 +1,6 @@
 export type MetricKey = "cpue" | "catch" | "effort" | "kept" | "released" | "release_rate";
 
-export type AreaMode = "regions" | "Florida Bay / Cape Sable" | "Whitewater Bay" | "Gulf Coast" | "detailed";
+export type AreaMode = "regions" | "detailed";
 
 export interface Species {
   species_id: string;
@@ -132,7 +132,8 @@ export interface DashboardState {
   speciesId: string;
   metric: MetricKey;
   areaMode: AreaMode;
-  detailedArea: string;
+  selectedRegions: string[];
+  selectedAreas: string[];
   startYear: number;
   endYear: number;
 }

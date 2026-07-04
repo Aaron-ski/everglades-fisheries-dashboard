@@ -7,11 +7,11 @@ export class FisheriesMap {
   private map: L.Map;
   private layer: L.GeoJSON;
   private records = new Map<string, DisplayRecord>();
-  private selectedArea = "all";
+  private selectedAreas = new Set<string>();
   private metric: MetricKey = "cpue";
-  private onAreaSelect: (areaCode: string) => void;
+  private onAreaSelect: (areaCode: string, additive: boolean) => void;
 
-  constructor(element: HTMLElement, geojson: FeatureCollection, onAreaSelect: (areaCode: string) => void) {
+  constructor(element: HTMLElement, geojson: FeatureCollection, onAreaSelect: (areaCode: string, additive: boolean) => void) {
     this.onAreaSelect = onAreaSelect;
     this.map = L.map(element, { scrollWheelZoom: false }).setView([25.25, -80.95], 9);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -22,10 +22,10 @@ export class FisheriesMap {
       style: (feature) => this.styleFeature(feature as Feature<Geometry>),
       onEachFeature: (feature, layer) => {
         layer.on({
-          click: () => {
+          click: (event) => {
             const code = String(feature.properties?.area_code ?? "");
-            this.selectedArea = code;
-            this.onAreaSelect(code);
+            const originalEvent = event.originalEvent as MouseEvent;
+            this.onAreaSelect(code, originalEvent.ctrlKey || originalEvent.metaKey);
             this.layer.setStyle((item) => this.styleFeature(item as Feature<Geometry>));
           }
         });
@@ -35,9 +35,9 @@ export class FisheriesMap {
     this.map.fitBounds(this.layer.getBounds(), { padding: [18, 18] });
   }
 
-  update(records: DisplayRecord[], metric: MetricKey, selectedArea: string): void {
+  update(records: DisplayRecord[], metric: MetricKey, selectedAreas: string[]): void {
     this.metric = metric;
-    this.selectedArea = selectedArea;
+    this.selectedAreas = new Set(selectedAreas);
     this.records = new Map(records.filter((record) => record.areaCode).map((record) => [record.areaCode as string, record]));
     this.layer.eachLayer((layer) => {
       const feature = (layer as L.Layer & { feature?: Feature }).feature;
@@ -57,7 +57,7 @@ export class FisheriesMap {
   private styleFeature(feature: Feature<Geometry>): L.PathOptions {
     const code = String(feature.properties?.area_code ?? "");
     const record = this.records.get(code);
-    const selected = this.selectedArea === code;
+    const selected = this.selectedAreas.has(code);
     const value = record?.value;
     const missing = value === null || value === undefined;
     const zero = value === 0;
