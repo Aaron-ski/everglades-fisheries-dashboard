@@ -1,0 +1,1891 @@
+{
+  "catalog_page": "https://catalog.data.gov/dataset/recreational-fishing-catch-and-effort-in-everglades-national-park-1980-2025-data-package",
+  "catch_details": {
+    "disposition_values": {
+      "NA": 13875,
+      "harvested": 226401,
+      "released": 587946
+    },
+    "effort_missing_rows": 437,
+    "effort_related_fields": [
+      "numPeople",
+      "hoursFished",
+      "hoursTrip"
+    ],
+    "effort_total_rows": 828222,
+    "fishing_area_values": [
+      {
+        "area_code": "1",
+        "broad_region": "Florida Bay / Cape Sable",
+        "records": 85068
+      },
+      {
+        "area_code": "1E",
+        "broad_region": "Florida Bay / Cape Sable",
+        "records": 296
+      },
+      {
+        "area_code": "1W",
+        "broad_region": "Florida Bay / Cape Sable",
+        "records": 61508
+      },
+      {
+        "area_code": "2",
+        "broad_region": "Florida Bay / Cape Sable",
+        "records": 12374
+      },
+      {
+        "area_code": "2E",
+        "broad_region": "Florida Bay / Cape Sable",
+        "records": 349
+      },
+      {
+        "area_code": "2W",
+        "broad_region": "Florida Bay / Cape Sable",
+        "records": 9993
+      },
+      {
+        "area_code": "3",
+        "broad_region": "Florida Bay / Cape Sable",
+        "records": 99975
+      },
+      {
+        "area_code": "3E",
+        "broad_region": "Florida Bay / Cape Sable",
+        "records": 19489
+      },
+      {
+        "area_code": "3W",
+        "broad_region": "Florida Bay / Cape Sable",
+        "records": 46748
+      },
+      {
+        "area_code": "4",
+        "broad_region": "Whitewater Bay",
+        "records": 83368
+      },
+      {
+        "area_code": "5",
+        "broad_region": "Gulf Coast",
+        "records": 116311
+      },
+      {
+        "area_code": "6",
+        "broad_region": "Gulf Coast",
+        "records": 134619
+      },
+      {
+        "area_code": "6C",
+        "broad_region": "Gulf Coast",
+        "records": 70385
+      },
+      {
+        "area_code": "6N",
+        "broad_region": "Gulf Coast",
+        "records": 59390
+      },
+      {
+        "area_code": "6S",
+        "broad_region": "Gulf Coast",
+        "records": 25950
+      },
+      {
+        "area_code": "Unknown",
+        "broad_region": "Unknown",
+        "records": 2399
+      }
+    ],
+    "max_date": "2025-04-27",
+    "min_date": "1980-01-05",
+    "months_present_by_year": {
+      "1980": 12,
+      "1981": 12,
+      "1982": 12,
+      "1983": 12,
+      "1984": 12,
+      "1985": 12,
+      "1986": 12,
+      "1987": 12,
+      "1988": 12,
+      "1989": 12,
+      "1990": 12,
+      "1991": 12,
+      "1992": 12,
+      "1993": 12,
+      "1994": 12,
+      "1995": 12,
+      "1996": 12,
+      "1997": 12,
+      "1998": 12,
+      "1999": 12,
+      "2000": 12,
+      "2001": 12,
+      "2002": 12,
+      "2003": 12,
+      "2004": 12,
+      "2005": 12,
+      "2006": 12,
+      "2007": 12,
+      "2008": 12,
+      "2009": 12,
+      "2010": 12,
+      "2011": 12,
+      "2012": 12,
+      "2013": 12,
+      "2014": 12,
+      "2015": 12,
+      "2016": 12,
+      "2017": 12,
+      "2018": 12,
+      "2019": 12,
+      "2020": 10,
+      "2021": 12,
+      "2022": 12,
+      "2023": 12,
+      "2024": 12,
+      "2025": 4
+    },
+    "negative_catch_rows": 0,
+    "quality_control_fields": [
+      "flags",
+      "EVER_creel_rec_catch_flags.csv.flagDescription"
+    ],
+    "species_values": [
+      {
+        "name": "Spotted Seatrout",
+        "records": 140614
+      },
+      {
+        "name": "Crevalle Jack",
+        "records": 92314
+      },
+      {
+        "name": "Gray Snapper",
+        "records": 88594
+      },
+      {
+        "name": "Red Drum",
+        "records": 86445
+      },
+      {
+        "name": "Ladyfish",
+        "records": 71054
+      },
+      {
+        "name": "Common Snook",
+        "records": 68189
+      },
+      {
+        "name": "Hardhead Catfish",
+        "records": 54518
+      },
+      {
+        "name": "Gafftopsail Catfish",
+        "records": 30274
+      },
+      {
+        "name": "Sheepshead",
+        "records": 29068
+      },
+      {
+        "name": "sea catfishes",
+        "records": 18157
+      },
+      {
+        "name": "Black Drum",
+        "records": 15175
+      },
+      {
+        "name": "Spanish Mackerel",
+        "records": 8873
+      },
+      {
+        "name": "Puffers",
+        "records": 8471
+      },
+      {
+        "name": "Tarpon",
+        "records": 8437
+      },
+      {
+        "name": "Goliath Grouper",
+        "records": 8153
+      },
+      {
+        "name": "No fish caught",
+        "records": 7540
+      },
+      {
+        "name": "Blacktip Shark",
+        "records": 7220
+      },
+      {
+        "name": "Bonnethead",
+        "records": 6516
+      },
+      {
+        "name": "Did not fish",
+        "records": 6335
+      },
+      {
+        "name": "Gag",
+        "records": 5856
+      },
+      {
+        "name": "requiem sharks",
+        "records": 4318
+      },
+      {
+        "name": "Pinfish",
+        "records": 3882
+      },
+      {
+        "name": "lizardfishes",
+        "records": 3807
+      },
+      {
+        "name": "Lefteye flounders",
+        "records": 3766
+      },
+      {
+        "name": "Atlantic Tripletail",
+        "records": 3644
+      },
+      {
+        "name": "Blue Crab",
+        "records": 3544
+      },
+      {
+        "name": "grunts",
+        "records": 2961
+      },
+      {
+        "name": "whiptail stingrays",
+        "records": 2727
+      },
+      {
+        "name": "Bluefish",
+        "records": 2676
+      },
+      {
+        "name": "Florida Pompano",
+        "records": 2561
+      },
+      {
+        "name": "Florida Bass",
+        "records": 2312
+      },
+      {
+        "name": "Blue Runner",
+        "records": 2253
+      },
+      {
+        "name": "Great Barracuda",
+        "records": 2206
+      },
+      {
+        "name": "Nurse Shark",
+        "records": 1795
+      },
+      {
+        "name": "Cobia",
+        "records": 1643
+      },
+      {
+        "name": "Sea Basses",
+        "records": 1554
+      },
+      {
+        "name": "Sand Seatrout",
+        "records": 1477
+      },
+      {
+        "name": "Lane Snapper",
+        "records": 1380
+      },
+      {
+        "name": "Bull Shark",
+        "records": 1162
+      },
+      {
+        "name": "snappers",
+        "records": 1130
+      },
+      {
+        "name": "Lemon Shark",
+        "records": 1073
+      },
+      {
+        "name": "Permit",
+        "records": 1009
+      },
+      {
+        "name": "mullets",
+        "records": 977
+      },
+      {
+        "name": "Sand Perch",
+        "records": 958
+      },
+      {
+        "name": "Black Grouper",
+        "records": 864
+      },
+      {
+        "name": "Mayan Cichlid",
+        "records": 721
+      },
+      {
+        "name": "Gulf Kingfish",
+        "records": 716
+      },
+      {
+        "name": "needlefishes",
+        "records": 491
+      },
+      {
+        "name": "Red Grouper",
+        "records": 475
+      },
+      {
+        "name": "Great Hammerhead",
+        "records": 470
+      },
+      {
+        "name": "Toadfishes",
+        "records": 457
+      },
+      {
+        "name": "remoras",
+        "records": 362
+      },
+      {
+        "name": "Bluestriped Grunt",
+        "records": 336
+      },
+      {
+        "name": "Leatherjacket",
+        "records": 300
+      },
+      {
+        "name": "Mutton Snapper",
+        "records": 278
+      },
+      {
+        "name": "Schoolmaster",
+        "records": 237
+      },
+      {
+        "name": "Lookdown",
+        "records": 228
+      },
+      {
+        "name": "Yellowtail Snapper",
+        "records": 225
+      },
+      {
+        "name": "Southern Flounder",
+        "records": 210
+      },
+      {
+        "name": "Oscar",
+        "records": 209
+      },
+      {
+        "name": "Silver Seatrout",
+        "records": 191
+      },
+      {
+        "name": "Silver Perch",
+        "records": 188
+      },
+      {
+        "name": "Pigfish",
+        "records": 187
+      },
+      {
+        "name": "Spinner Shark",
+        "records": 186
+      },
+      {
+        "name": "Jacks",
+        "records": 166
+      },
+      {
+        "name": "drums and croakers",
+        "records": 164
+      },
+      {
+        "name": "Florida Gar",
+        "records": 157
+      },
+      {
+        "name": "Inshore Lizardfish",
+        "records": 155
+      },
+      {
+        "name": "Atlantic Sharpnose Shark",
+        "records": 135
+      },
+      {
+        "name": "Smalltooth Sawfish",
+        "records": 131
+      },
+      {
+        "name": "gars",
+        "records": 128
+      },
+      {
+        "name": "Houndfish",
+        "records": 127
+      },
+      {
+        "name": "sawfishes",
+        "records": 123
+      },
+      {
+        "name": "Sailors Choice",
+        "records": 122
+      },
+      {
+        "name": "Striped Mullet",
+        "records": 119
+      },
+      {
+        "name": "Southern Puffer",
+        "records": 118
+      },
+      {
+        "name": "Cichlids",
+        "records": 110
+      },
+      {
+        "name": "porgies",
+        "records": 108
+      },
+      {
+        "name": "hammerhead sharks",
+        "records": 98
+      },
+      {
+        "name": "Yellow Jack",
+        "records": 90
+      },
+      {
+        "name": "Atlantic Spadefish",
+        "records": 83
+      },
+      {
+        "name": "Red Snapper",
+        "records": 79
+      },
+      {
+        "name": "Bonefish",
+        "records": 69
+      },
+      {
+        "name": "sunfishes",
+        "records": 64
+      },
+      {
+        "name": "Greater Amberjack",
+        "records": 63
+      },
+      {
+        "name": "Unidentified species",
+        "records": 59
+      },
+      {
+        "name": "Southern Stingray",
+        "records": 58
+      },
+      {
+        "name": "Cero",
+        "records": 57
+      },
+      {
+        "name": "Bluegill",
+        "records": 57
+      },
+      {
+        "name": "Sandbar Shark",
+        "records": 54
+      },
+      {
+        "name": "Dog Snapper",
+        "records": 48
+      },
+      {
+        "name": "Atlantic Croaker",
+        "records": 48
+      },
+      {
+        "name": "Grass Porgy",
+        "records": 47
+      },
+      {
+        "name": "Searobins and Gurnards",
+        "records": 44
+      },
+      {
+        "name": "White Mullet",
+        "records": 43
+      },
+      {
+        "name": "Ballyhoo",
+        "records": 42
+      },
+      {
+        "name": "White Grunt",
+        "records": 41
+      },
+      {
+        "name": "Bar Jack",
+        "records": 40
+      },
+      {
+        "name": "Atlantic Weakfish",
+        "records": 39
+      },
+      {
+        "name": "King Mackerel",
+        "records": 39
+      },
+      {
+        "name": "African Pompano",
+        "records": 38
+      },
+      {
+        "name": "Porkfish",
+        "records": 38
+      },
+      {
+        "name": "Striped Mojarra",
+        "records": 37
+      },
+      {
+        "name": "Nassau Grouper",
+        "records": 35
+      },
+      {
+        "name": "Stone Crab",
+        "records": 33
+      },
+      {
+        "name": "scorpionfishes",
+        "records": 32
+      },
+      {
+        "name": "Gulf Flounder",
+        "records": 29
+      },
+      {
+        "name": "Triggerfishes",
+        "records": 25
+      },
+      {
+        "name": "Herrings",
+        "records": 25
+      },
+      {
+        "name": "Silver Jenny",
+        "records": 25
+      },
+      {
+        "name": "Bowfin",
+        "records": 24
+      },
+      {
+        "name": "porcupinefishes",
+        "records": 23
+      },
+      {
+        "name": "Blackbelly Rosefish",
+        "records": 22
+      },
+      {
+        "name": "Unknown",
+        "records": 22
+      },
+      {
+        "name": "batfishes",
+        "records": 22
+      },
+      {
+        "name": "Mojarras",
+        "records": 21
+      },
+      {
+        "name": "snake eels",
+        "records": 21
+      },
+      {
+        "name": "mackerels",
+        "records": 19
+      },
+      {
+        "name": "Blackfin Snapper",
+        "records": 19
+      },
+      {
+        "name": "False Pilchard",
+        "records": 19
+      },
+      {
+        "name": "Black Jack",
+        "records": 18
+      },
+      {
+        "name": "Spotted Drum",
+        "records": 17
+      },
+      {
+        "name": "Tiger Shark",
+        "records": 17
+      },
+      {
+        "name": "squirrelfishes",
+        "records": 17
+      },
+      {
+        "name": "Boxfishes",
+        "records": 16
+      },
+      {
+        "name": "Black Snapper",
+        "records": 16
+      },
+      {
+        "name": "Cubera Snapper",
+        "records": 16
+      },
+      {
+        "name": "Silky Shark",
+        "records": 16
+      },
+      {
+        "name": "Vermilion Snapper",
+        "records": 15
+      },
+      {
+        "name": "Horse-eye Jack",
+        "records": 14
+      },
+      {
+        "name": "Skipjack Tuna",
+        "records": 14
+      },
+      {
+        "name": "Wrasses",
+        "records": 13
+      },
+      {
+        "name": "Scaled Sardine",
+        "records": 12
+      },
+      {
+        "name": "Blue Croaker",
+        "records": 9
+      },
+      {
+        "name": "hardnose skates",
+        "records": 9
+      },
+      {
+        "name": "Queen Snapper",
+        "records": 9
+      },
+      {
+        "name": "Largetooth Sawfish",
+        "records": 9
+      },
+      {
+        "name": "Hogfish",
+        "records": 8
+      },
+      {
+        "name": "Scalloped Hammerhead",
+        "records": 8
+      },
+      {
+        "name": "Southern Kingfish",
+        "records": 7
+      },
+      {
+        "name": "Atlantic Thread Herring",
+        "records": 7
+      },
+      {
+        "name": "Swordspine Snook",
+        "records": 7
+      },
+      {
+        "name": "Sergeant Major",
+        "records": 7
+      },
+      {
+        "name": "Finetooth Shark",
+        "records": 7
+      },
+      {
+        "name": "Atlantic Needlefish",
+        "records": 6
+      },
+      {
+        "name": "Orange Filefish",
+        "records": 6
+      },
+      {
+        "name": "morays",
+        "records": 6
+      },
+      {
+        "name": "Old World Silversides",
+        "records": 6
+      },
+      {
+        "name": "Florida Smoothhound",
+        "records": 6
+      },
+      {
+        "name": "Shy Hamlet",
+        "records": 6
+      },
+      {
+        "name": "Atlantic Moonfish",
+        "records": 6
+      },
+      {
+        "name": "Bignose Shark",
+        "records": 6
+      },
+      {
+        "name": "Snakefish",
+        "records": 6
+      },
+      {
+        "name": "Butterfly Peacock Bass",
+        "records": 6
+      },
+      {
+        "name": "Misty Grouper",
+        "records": 6
+      },
+      {
+        "name": "Black Sea Bass",
+        "records": 5
+      },
+      {
+        "name": "Rainbow Runner",
+        "records": 5
+      },
+      {
+        "name": "Atlantic Bonito",
+        "records": 5
+      },
+      {
+        "name": "Remora",
+        "records": 5
+      },
+      {
+        "name": "Smooth Dogfish",
+        "records": 5
+      },
+      {
+        "name": "pipefishes",
+        "records": 5
+      },
+      {
+        "name": "Spotted Eagle Ray",
+        "records": 5
+      },
+      {
+        "name": "Bandtooth Conger",
+        "records": 5
+      },
+      {
+        "name": "Blacknose Shark",
+        "records": 5
+      },
+      {
+        "name": "Oyster Toadfish",
+        "records": 5
+      },
+      {
+        "name": "pirate perches",
+        "records": 5
+      },
+      {
+        "name": "Gray Triggerfish",
+        "records": 5
+      },
+      {
+        "name": "Stone Crabs",
+        "records": 5
+      },
+      {
+        "name": "Spiny Lobster",
+        "records": 4
+      },
+      {
+        "name": "Reef Silverside",
+        "records": 4
+      },
+      {
+        "name": "Tarpon Snook",
+        "records": 4
+      },
+      {
+        "name": "Reef Shark",
+        "records": 4
+      },
+      {
+        "name": "Banded Rudderfish",
+        "records": 4
+      },
+      {
+        "name": "tenpounders",
+        "records": 4
+      },
+      {
+        "name": "Guaguanche",
+        "records": 4
+      },
+      {
+        "name": "Dusky Shark",
+        "records": 4
+      },
+      {
+        "name": "Yellowfin Mojarra",
+        "records": 4
+      },
+      {
+        "name": "Atlantic Guitarfish",
+        "records": 4
+      },
+      {
+        "name": "Gulf Menhaden",
+        "records": 4
+      },
+      {
+        "name": "pikes and mudminnows",
+        "records": 4
+      },
+      {
+        "name": "Smallscale Fat Snook",
+        "records": 4
+      },
+      {
+        "name": "Hickory Shad",
+        "records": 4
+      },
+      {
+        "name": "Coney",
+        "records": 4
+      },
+      {
+        "name": "Spotted Tilapia",
+        "records": 4
+      },
+      {
+        "name": "Longtail Bass",
+        "records": 4
+      },
+      {
+        "name": "Jolthead Porgy",
+        "records": 4
+      },
+      {
+        "name": "Little Tunny",
+        "records": 4
+      },
+      {
+        "name": "Sharpnose Puffer",
+        "records": 3
+      },
+      {
+        "name": "guitarfishes",
+        "records": 3
+      },
+      {
+        "name": "Oceanic Whitetip Shark",
+        "records": 3
+      },
+      {
+        "name": "Whitefin Sharksucker",
+        "records": 3
+      },
+      {
+        "name": "Blue Tilapia",
+        "records": 3
+      },
+      {
+        "name": "Bigeye Stargazer",
+        "records": 3
+      },
+      {
+        "name": "Striped Croaker",
+        "records": 3
+      },
+      {
+        "name": "Porcupinefish",
+        "records": 3
+      },
+      {
+        "name": "Wrasse Basslet",
+        "records": 3
+      },
+      {
+        "name": "Warsaw Grouper",
+        "records": 3
+      },
+      {
+        "name": "French Grunt",
+        "records": 3
+      },
+      {
+        "name": "Almaco Jack",
+        "records": 3
+      },
+      {
+        "name": "Black Margate",
+        "records": 3
+      },
+      {
+        "name": "Whitebone Porgy",
+        "records": 3
+      },
+      {
+        "name": "Redfin Needlefish",
+        "records": 2
+      },
+      {
+        "name": "Yellowtail Hamlet",
+        "records": 2
+      },
+      {
+        "name": "conger eels",
+        "records": 2
+      },
+      {
+        "name": "Wahoo",
+        "records": 2
+      },
+      {
+        "name": "butterflyfishes",
+        "records": 2
+      },
+      {
+        "name": "Shortfin Mako",
+        "records": 2
+      },
+      {
+        "name": "Hawkfishes",
+        "records": 2
+      },
+      {
+        "name": "Northern Kingfish",
+        "records": 2
+      },
+      {
+        "name": "Atlantic Bumper",
+        "records": 2
+      },
+      {
+        "name": "Largescale Lizardfish",
+        "records": 2
+      },
+      {
+        "name": "Dolphinfish",
+        "records": 2
+      },
+      {
+        "name": "Squirrelfish",
+        "records": 2
+      },
+      {
+        "name": "snooks",
+        "records": 2
+      },
+      {
+        "name": "barracudas",
+        "records": 2
+      },
+      {
+        "name": "Orangespotted Filefish",
+        "records": 1
+      },
+      {
+        "name": "Queen Triggerfish",
+        "records": 1
+      },
+      {
+        "name": "suckers",
+        "records": 1
+      },
+      {
+        "name": "tripletails",
+        "records": 1
+      },
+      {
+        "name": "Spottail Pinfish",
+        "records": 1
+      },
+      {
+        "name": "Bullet Mackerel",
+        "records": 1
+      },
+      {
+        "name": "Shortjaw Lizardfish",
+        "records": 1
+      },
+      {
+        "name": "Mutton Hamlet",
+        "records": 1
+      },
+      {
+        "name": "Atlantic Chub Mackerel",
+        "records": 1
+      },
+      {
+        "name": "Mozambique Tilapia",
+        "records": 1
+      },
+      {
+        "name": "Ocellate Skate",
+        "records": 1
+      },
+      {
+        "name": "Star Drum",
+        "records": 1
+      },
+      {
+        "name": "perches and darters",
+        "records": 1
+      },
+      {
+        "name": "Silver Porgy",
+        "records": 1
+      },
+      {
+        "name": "bonefishes",
+        "records": 1
+      },
+      {
+        "name": "Sharksucker",
+        "records": 1
+      },
+      {
+        "name": "Rock Hind",
+        "records": 1
+      },
+      {
+        "name": "cusk-eels",
+        "records": 1
+      },
+      {
+        "name": "Redear Sardine",
+        "records": 1
+      },
+      {
+        "name": "Yellowfin Tuna",
+        "records": 1
+      },
+      {
+        "name": "Tricorn Batfish",
+        "records": 1
+      },
+      {
+        "name": "flyingfishes",
+        "records": 1
+      },
+      {
+        "name": "Spiny Butterfly Ray",
+        "records": 1
+      },
+      {
+        "name": "Inland Silverside",
+        "records": 1
+      },
+      {
+        "name": "Sand Stargazer",
+        "records": 1
+      },
+      {
+        "name": "Chalk Bass",
+        "records": 1
+      },
+      {
+        "name": "Margate",
+        "records": 1
+      },
+      {
+        "name": "Spotted Trunkfish",
+        "records": 1
+      },
+      {
+        "name": "goatfishes",
+        "records": 1
+      },
+      {
+        "name": "Red Hind",
+        "records": 1
+      },
+      {
+        "name": "Black Acara",
+        "records": 1
+      },
+      {
+        "name": "Shrimp Eel",
+        "records": 1
+      },
+      {
+        "name": "Barred Hamlet",
+        "records": 1
+      },
+      {
+        "name": "Yellowmouth Grouper",
+        "records": 1
+      },
+      {
+        "name": "American Eel",
+        "records": 1
+      },
+      {
+        "name": "Southern Eagle Ray",
+        "records": 1
+      },
+      {
+        "name": "Bermuda Chub",
+        "records": 1
+      },
+      {
+        "name": "Checkered Puffer",
+        "records": 1
+      },
+      {
+        "name": "Redear Sunfish",
+        "records": 1
+      },
+      {
+        "name": "Redbreast Sunfish",
+        "records": 1
+      },
+      {
+        "name": "Spanish Grunt",
+        "records": 1
+      },
+      {
+        "name": "Nurse Sharks",
+        "records": 1
+      },
+      {
+        "name": "Mountain Mullet",
+        "records": 1
+      },
+      {
+        "name": "Bluntnose Stingray",
+        "records": 1
+      },
+      {
+        "name": "Ocean Triggerfish",
+        "records": 1
+      },
+      {
+        "name": "Atlantic Menhaden",
+        "records": 1
+      },
+      {
+        "name": "Bridled Burrfish",
+        "records": 1
+      },
+      {
+        "name": "Giant Manta",
+        "records": 1
+      },
+      {
+        "name": "Atlantic Silverstripe Halfbeak",
+        "records": 1
+      },
+      {
+        "name": "Scamp",
+        "records": 1
+      },
+      {
+        "name": "Blackspotted Topminnow",
+        "records": 1
+      },
+      {
+        "name": "Fat Sleeper",
+        "records": 1
+      },
+      {
+        "name": "Marbled Grouper",
+        "records": 1
+      },
+      {
+        "name": "Dusky Jawfish",
+        "records": 1
+      }
+    ],
+    "unique_years": [
+      1980,
+      1981,
+      1982,
+      1983,
+      1984,
+      1985,
+      1986,
+      1987,
+      1988,
+      1989,
+      1990,
+      1991,
+      1992,
+      1993,
+      1994,
+      1995,
+      1996,
+      1997,
+      1998,
+      1999,
+      2000,
+      2001,
+      2002,
+      2003,
+      2004,
+      2005,
+      2006,
+      2007,
+      2008,
+      2009,
+      2010,
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ]
+  },
+  "files": [
+    {
+      "column_count": 20,
+      "columns": [
+        "interviewLocation",
+        "eventDate",
+        "interviewNumber",
+        "numPeople",
+        "hoursFished",
+        "areaFished",
+        "scientificName_catch",
+        "commonName_catch",
+        "disposition",
+        "individualCount",
+        "interviewTime",
+        "hoursTrip",
+        "fishingPartyComposition",
+        "scientificName_pref",
+        "commonName_pref",
+        "originTrip",
+        "anglerResidence",
+        "interviewer",
+        "dayOfWeek",
+        "flags"
+      ],
+      "filename": "EVER_creel_rec_catch.csv",
+      "format": "csv",
+      "inferred_types": {
+        "anglerResidence": "float64",
+        "areaFished": "int64",
+        "commonName_catch": "str",
+        "commonName_pref": "float64",
+        "dayOfWeek": "str",
+        "disposition": "str",
+        "eventDate": "str",
+        "fishingPartyComposition": "float64",
+        "flags": "int64",
+        "hoursFished": "int64",
+        "hoursTrip": "float64",
+        "individualCount": "int64",
+        "interviewLocation": "str",
+        "interviewNumber": "int64",
+        "interviewTime": "float64",
+        "interviewer": "int64",
+        "numPeople": "int64",
+        "originTrip": "float64",
+        "scientificName_catch": "str",
+        "scientificName_pref": "float64"
+      },
+      "missingness": {
+        "areaFished": {
+          "missing": 2399,
+          "rate": 0.002896566379545581,
+          "total": 828222
+        },
+        "commonName_catch": {
+          "missing": 22,
+          "rate": 2.6562926365153305e-05,
+          "total": 828222
+        },
+        "disposition": {
+          "missing": 13875,
+          "rate": 0.01675275469620464,
+          "total": 828222
+        },
+        "eventDate": {
+          "missing": 0,
+          "rate": 0.0,
+          "total": 828222
+        },
+        "flags": {
+          "missing": 0,
+          "rate": 0.0,
+          "total": 828222
+        },
+        "hoursFished": {
+          "missing": 426,
+          "rate": 0.0005143548468888777,
+          "total": 828222
+        },
+        "individualCount": {
+          "missing": 0,
+          "rate": 0.0,
+          "total": 828222
+        },
+        "interviewLocation": {
+          "missing": 0,
+          "rate": 0.0,
+          "total": 828222
+        },
+        "interviewNumber": {
+          "missing": 0,
+          "rate": 0.0,
+          "total": 828222
+        },
+        "numPeople": {
+          "missing": 400,
+          "rate": 0.0004829622975482419,
+          "total": 828222
+        },
+        "scientificName_catch": {
+          "missing": 0,
+          "rate": 0.0,
+          "total": 828222
+        }
+      },
+      "row_count": 828222,
+      "sample_values": {
+        "anglerResidence": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "areaFished": [
+          5,
+          3,
+          3,
+          4,
+          4
+        ],
+        "commonName_catch": [
+          "Spotted Seatrout",
+          "Blue Runner",
+          "Crevalle Jack",
+          "Gray Snapper",
+          "Bluestriped Grunt"
+        ],
+        "commonName_pref": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "dayOfWeek": [
+          "weekend",
+          "weekend",
+          "weekend",
+          "weekend",
+          "weekend"
+        ],
+        "disposition": [
+          "harvested",
+          "released",
+          "released",
+          "harvested",
+          "released"
+        ],
+        "eventDate": [
+          "1980-01-05",
+          "1980-01-05",
+          "1980-01-05",
+          "1980-01-05",
+          "1980-01-05"
+        ],
+        "fishingPartyComposition": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "flags": [
+          4,
+          3,
+          3,
+          3,
+          3
+        ],
+        "hoursFished": [
+          16,
+          4,
+          4,
+          4,
+          4
+        ],
+        "hoursTrip": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "individualCount": [
+          53,
+          1,
+          1,
+          15,
+          3
+        ],
+        "interviewLocation": [
+          "Flamingo",
+          "Flamingo",
+          "Flamingo",
+          "Flamingo",
+          "Flamingo"
+        ],
+        "interviewNumber": [
+          1,
+          5,
+          5,
+          6,
+          6
+        ],
+        "interviewTime": [
+          null,
+          1300.0,
+          1300.0,
+          1300.0,
+          1300.0
+        ],
+        "interviewer": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "numPeople": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "originTrip": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "scientificName_catch": [
+          "Cynoscion nebulosus",
+          "Caranx crysos",
+          "Caranx hippos",
+          "Lutjanus griseus",
+          "Haemulon sciurus"
+        ],
+        "scientificName_pref": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "size_bytes": 127011583
+    },
+    {
+      "column_count": 8,
+      "columns": [
+        "zone",
+        "num",
+        "zoneName",
+        "unitCode",
+        "unitName",
+        "groupCode",
+        "groupName",
+        "wkt"
+      ],
+      "filename": "EVER_creel_fishing_areas.csv",
+      "format": "csv",
+      "inferred_types": {
+        "groupCode": "str",
+        "groupName": "str",
+        "num": "int64",
+        "unitCode": "str",
+        "unitName": "str",
+        "wkt": "str",
+        "zone": "str",
+        "zoneName": "str"
+      },
+      "missingness": {
+        "wkt": {
+          "missing": 0,
+          "rate": 0.0,
+          "total": 11
+        },
+        "zone": {
+          "missing": 0,
+          "rate": 0.0,
+          "total": 11
+        },
+        "zoneName": {
+          "missing": 0,
+          "rate": 0.0,
+          "total": 11
+        }
+      },
+      "row_count": 11,
+      "sample_values": {
+        "groupCode": [
+          "SOFL",
+          "SOFL",
+          "SOFL",
+          "SOFL",
+          "SOFL"
+        ],
+        "groupName": [
+          "South Florida National Parks Group",
+          "South Florida National Parks Group",
+          "South Florida National Parks Group",
+          "South Florida National Parks Group",
+          "South Florida National Parks Group"
+        ],
+        "num": [
+          6,
+          6,
+          6,
+          5,
+          4
+        ],
+        "unitCode": [
+          "EVER",
+          "EVER",
+          "EVER",
+          "EVER",
+          "EVER"
+        ],
+        "unitName": [
+          "EVERGLADES NATIONAL PARK",
+          "EVERGLADES NATIONAL PARK",
+          "EVERGLADES NATIONAL PARK",
+          "EVERGLADES NATIONAL PARK",
+          "EVERGLADES NATIONAL PARK"
+        ],
+        "wkt": [
+          "POLYGON ((454235.74700000044 2863739.5429999996, 459115.01800000016 2863742.029000003, 459121.3250000011 2861942.522, 459121.44400000107 2859789.7630000003, 459121.563000001 2858049.005999999, 459924.97300000023 2858041.005000001, 459922.1579999998 2857236.2520000003, 462434.3260000013 2857223.7470000014, 462858.7650000015 2857222.246000001, 463992.08300000057 2857218.494000001, 464027.53100000136 2860556.7550000027, 467399.08299999963 2860508.6680000015, 473027.96100000106 2854769.7239999995, 466225.3860000009 2844511.9370000027, 462435.70700000133 2842109.308, 462396.0390000008 2842157.6730000004, 460644.9510000013 2844223.439000001, 457393.82900000084 2847124.9600000028, 454201.9213185925 2850074.5735692903, 449899.4760000007 2853773.751000002, 447831.2800000012 2855639.2720000017, 447830.69200000074 2857256.7799999975, 449420.7650000006 2857266.5220000017, 449422.0209999997 2858898.5310000014, 449922.4919999987 2858894.029000001, 451021.6230000006 2858894.7760000024, 451006.53400000185 2860507.035, 452637.91600000206 2860511.5310000014, 452638.26499999966 2861969.539000001, 452623.5780000007 2862114.2890000027, 453318.7680000011 2862117.0370000023, 454233.17900000047 2862120.785000004, 454235.74700000044 2863739.5429999996))",
+          "POLYGON ((466225.3860000009 2844511.9370000027, 473027.96100000106 2854769.7239999995, 487326.24000000115 2840204.095999999, 487317.92700000014 2840162.3460000027, 473563.65830534603 2828473.538071664, 468894.739000001 2834234.107999999, 462435.70700000133 2842109.308, 466225.3860000009 2844511.9370000027))",
+          "POLYGON ((487326.24000000115 2840204.095999999, 494207.6840000013 2833194.0430000033, 505878.80900000036 2826240.234000003, 505873.2150000008 2826230.7339999992, 476878.27765542455 2820402.168959841, 473564.7852299437 2828453.1749962606, 487317.92700000014 2840162.3460000027, 487326.24000000115 2840204.095999999))",
+          "MULTIPOLYGON (((505871.9299999997 2826230.477000002, 518133.392643732 2818456.5206433684, 518193.366212165 2812754.6115364283, 509018.17500000075 2811286.729000002, 490572.94305382576 2796189.4390639383, 488769.08499999996 2800279.343000004, 481495.8546611443 2799343.65193516, 482082.95041715726 2801735.9836322144, 479561.3373229895 2813494.867323106, 476856.85775042605 2820404.3272392415, 505871.9299999997 2826230.477000002)), ((505871.9299999997 2826230.477000002, 505878.80900000036 2826240.234000003, 505873.2150000008 2826230.7339999992, 505871.9299999997 2826230.477000002)))",
+          "POLYGON ((509136.311345906 2811363.5863658898, 518186.54508650955 2812737.792981036, 517752.9900099924 2793592.237385737, 510563.6959461998 2786239.1283864006, 510516.876950969 2779146.003630569, 504501.35895605944 2779070.2307128347, 504462.0641698865 2786743.849050222, 493250.68512048107 2790214.199678723, 490570.0908420468 2796209.0950619187, 509136.311345906 2811363.5863658898))"
+        ],
+        "zone": [
+          "6N",
+          "6C",
+          "6S",
+          "5",
+          "4"
+        ],
+        "zoneName": [
+          "Northern Ten Thousand Islands",
+          "Central Ten Thousand Islands",
+          "Southern Ten Thousand Islands",
+          "Shark River",
+          "Whitewater Bay"
+        ]
+      },
+      "size_bytes": 14559
+    },
+    {
+      "column_count": 5,
+      "columns": [
+        "interviewLocation",
+        "eventDate",
+        "interviewNumber",
+        "scientificName_catch",
+        "flagDescription"
+      ],
+      "filename": "EVER_creel_rec_catch_flags.csv",
+      "format": "csv",
+      "inferred_types": {
+        "eventDate": "str",
+        "flagDescription": "str",
+        "interviewLocation": "str",
+        "interviewNumber": "int64",
+        "scientificName_catch": "str"
+      },
+      "missingness": {
+        "flagDescription": {
+          "missing": 0,
+          "rate": 0.0,
+          "total": 619290
+        }
+      },
+      "row_count": 619290,
+      "sample_values": {
+        "eventDate": [
+          "1980-01-05",
+          "1980-01-05",
+          "1980-01-05",
+          "1980-01-05",
+          "1980-01-05"
+        ],
+        "flagDescription": [
+          "trip_hours should be >= 0",
+          "Check interview time",
+          "Party composition should be 0; 1; 2; 3; or 4",
+          "Species preference valid?",
+          "trip_hours should be >= 0"
+        ],
+        "interviewLocation": [
+          "Flamingo",
+          "Flamingo",
+          "Flamingo",
+          "Flamingo",
+          "Flamingo"
+        ],
+        "interviewNumber": [
+          1,
+          1,
+          1,
+          1,
+          5
+        ],
+        "scientificName_catch": [
+          "Cynoscion nebulosus",
+          "Cynoscion nebulosus",
+          "Cynoscion nebulosus",
+          "Cynoscion nebulosus",
+          "Caranx crysos"
+        ]
+      },
+      "size_bytes": 46645498
+    },
+    {
+      "column_count": null,
+      "columns": [],
+      "filename": "EVER_creel_rec_metadata.xml",
+      "format": "xml",
+      "root_tag": "{https://eml.ecoinformatics.org/eml-2.2.0}eml",
+      "row_count": null,
+      "sample_values": {},
+      "size_bytes": 1681904
+    },
+    {
+      "column_count": 5,
+      "columns": [
+        "parking_lot",
+        "eventDate",
+        "staff",
+        "trailer_count",
+        "notes"
+      ],
+      "filename": "EVER_creel_rec_trailer_count.csv",
+      "format": "csv",
+      "inferred_types": {
+        "eventDate": "str",
+        "notes": "str",
+        "parking_lot": "str",
+        "staff": "str",
+        "trailer_count": "int64"
+      },
+      "missingness": {
+        "eventDate": {
+          "missing": 0,
+          "rate": 0.0,
+          "total": 35765
+        },
+        "parking_lot": {
+          "missing": 0,
+          "rate": 0.0,
+          "total": 35765
+        },
+        "trailer_count": {
+          "missing": 2174,
+          "rate": 0.06078568432825388,
+          "total": 35765
+        }
+      },
+      "row_count": 35765,
+      "sample_values": {
+        "eventDate": [
+          "1980-01-01",
+          "1980-01-02",
+          "1980-01-03",
+          "1980-01-04",
+          "1980-01-05"
+        ],
+        "notes": [
+          "Proofed from floppy disc printout",
+          "Proofed from floppy disc printout",
+          "Proofed from floppy disc printout",
+          "Proofed from floppy disc printout",
+          "counts from rec fishing survey datasheet"
+        ],
+        "parking_lot": [
+          "Flamingo",
+          "Flamingo",
+          "Flamingo",
+          "Flamingo",
+          "Flamingo"
+        ],
+        "staff": [
+          "UNK",
+          "UNK",
+          "UNK",
+          "UNK",
+          "CRL"
+        ],
+        "trailer_count": [
+          33,
+          25,
+          17,
+          27,
+          42
+        ]
+      },
+      "size_bytes": 1495550
+    }
+  ],
+  "geography": {
+    "area_count": 11,
+    "areas": [
+      {
+        "zone": "6N",
+        "zoneName": "Northern Ten Thousand Islands"
+      },
+      {
+        "zone": "6C",
+        "zoneName": "Central Ten Thousand Islands"
+      },
+      {
+        "zone": "6S",
+        "zoneName": "Southern Ten Thousand Islands"
+      },
+      {
+        "zone": "5",
+        "zoneName": "Shark River"
+      },
+      {
+        "zone": "4",
+        "zoneName": "Whitewater Bay"
+      },
+      {
+        "zone": "3W",
+        "zoneName": "Western Cape Sable"
+      },
+      {
+        "zone": "1E",
+        "zoneName": "Northeastern Florida Bay"
+      },
+      {
+        "zone": "1W",
+        "zoneName": "Northwestern Florida Bay"
+      },
+      {
+        "zone": "3E",
+        "zoneName": "Eastern Cape Sable"
+      },
+      {
+        "zone": "2E",
+        "zoneName": "Southeastern Florida Bay"
+      },
+      {
+        "zone": "2W",
+        "zoneName": "Southwestern Florida Bay"
+      }
+    ],
+    "browser_crs": "WGS84 longitude/latitude (EPSG:4326)",
+    "geometry_format": "WKT polygons",
+    "source_crs": "NAD 1983 UTM Zone 17N (EPSG:26917), from NPS metadata wkt attribute definition"
+  },
+  "manifest": {
+    "files": [
+      {
+        "content_type": null,
+        "filename": "EVER_creel_rec_catch.csv",
+        "key": "catch_effort",
+        "retrieved_at": "2026-07-04T20:30:20.041628+00:00",
+        "sha256": "4f216fe72cdafb9131fc3b6b38a70e211c25ba5768df7ee4083a983f70d0beca",
+        "size": 127011583,
+        "status": "cached",
+        "url": "https://irma.nps.gov/DataStore/DownloadFile/759623?Reference=2318429"
+      },
+      {
+        "content_type": null,
+        "filename": "EVER_creel_fishing_areas.csv",
+        "key": "area_geography",
+        "retrieved_at": "2026-07-04T20:30:20.043391+00:00",
+        "sha256": "6cd4ea9710d489d5bcc75bb865424333dd2530a31dd1e18b0b97a5cff5fb91a5",
+        "size": 14559,
+        "status": "cached",
+        "url": "https://irma.nps.gov/DataStore/DownloadFile/759622?Reference=2318429"
+      },
+      {
+        "content_type": null,
+        "filename": "EVER_creel_rec_catch_flags.csv",
+        "key": "qc_flags",
+        "retrieved_at": "2026-07-04T20:30:20.200381+00:00",
+        "sha256": "961df733acb6b18a683489546e0f1b8f3f3c3791de2da4969b5c6c03346b98e8",
+        "size": 46645498,
+        "status": "cached",
+        "url": "https://irma.nps.gov/DataStore/DownloadFile/759624?Reference=2318429"
+      },
+      {
+        "content_type": null,
+        "filename": "EVER_creel_rec_metadata.xml",
+        "key": "metadata",
+        "retrieved_at": "2026-07-04T20:30:20.206315+00:00",
+        "sha256": "9c2f1acaade4cb9f7028846a91f8ee5b2725663447b8294badf9e48cd1b272ac",
+        "size": 1681904,
+        "status": "cached",
+        "url": "https://irma.nps.gov/DataStore/DownloadFile/759625?Reference=2318429"
+      },
+      {
+        "content_type": null,
+        "filename": "EVER_creel_rec_trailer_count.csv",
+        "key": "boat_trailer_counts",
+        "retrieved_at": "2026-07-04T20:30:20.212278+00:00",
+        "sha256": "b9d6cca3055dc04ca8d35d5cf99ee86de1bc6e28099dd3879d4ee23db52b5719",
+        "size": 1495550,
+        "status": "cached",
+        "url": "https://irma.nps.gov/DataStore/DownloadFile/759626?Reference=2318429"
+      }
+    ]
+  },
+  "source_page": "https://irma.nps.gov/DataStore/Reference/Profile/2318429"
+}

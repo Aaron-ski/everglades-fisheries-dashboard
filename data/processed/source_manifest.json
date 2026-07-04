@@ -1,0 +1,54 @@
+{
+  "files": [
+    {
+      "content_type": null,
+      "filename": "EVER_creel_rec_catch.csv",
+      "key": "catch_effort",
+      "retrieved_at": "2026-07-04T20:30:20.041628+00:00",
+      "sha256": "4f216fe72cdafb9131fc3b6b38a70e211c25ba5768df7ee4083a983f70d0beca",
+      "size": 127011583,
+      "status": "cached",
+      "url": "https://irma.nps.gov/DataStore/DownloadFile/759623?Reference=2318429"
+    },
+    {
+      "content_type": null,
+      "filename": "EVER_creel_fishing_areas.csv",
+      "key": "area_geography",
+      "retrieved_at": "2026-07-04T20:30:20.043391+00:00",
+      "sha256": "6cd4ea9710d489d5bcc75bb865424333dd2530a31dd1e18b0b97a5cff5fb91a5",
+      "size": 14559,
+      "status": "cached",
+      "url": "https://irma.nps.gov/DataStore/DownloadFile/759622?Reference=2318429"
+    },
+    {
+      "content_type": null,
+      "filename": "EVER_creel_rec_catch_flags.csv",
+      "key": "qc_flags",
+      "retrieved_at": "2026-07-04T20:30:20.200381+00:00",
+      "sha256": "961df733acb6b18a683489546e0f1b8f3f3c3791de2da4969b5c6c03346b98e8",
+      "size": 46645498,
+      "status": "cached",
+      "url": "https://irma.nps.gov/DataStore/DownloadFile/759624?Reference=2318429"
+    },
+    {
+      "content_type": null,
+      "filename": "EVER_creel_rec_metadata.xml",
+      "key": "metadata",
+      "retrieved_at": "2026-07-04T20:30:20.206315+00:00",
+      "sha256": "9c2f1acaade4cb9f7028846a91f8ee5b2725663447b8294badf9e48cd1b272ac",
+      "size": 1681904,
+      "status": "cached",
+      "url": "https://irma.nps.gov/DataStore/DownloadFile/759625?Reference=2318429"
+    },
+    {
+      "content_type": null,
+      "filename": "EVER_creel_rec_trailer_count.csv",
+      "key": "boat_trailer_counts",
+      "retrieved_at": "2026-07-04T20:30:20.212278+00:00",
+      "sha256": "b9d6cca3055dc04ca8d35d5cf99ee86de1bc6e28099dd3879d4ee23db52b5719",
+      "size": 1495550,
+      "status": "cached",
+      "url": "https://irma.nps.gov/DataStore/DownloadFile/759626?Reference=2318429"
+    }
+  ]
+}
