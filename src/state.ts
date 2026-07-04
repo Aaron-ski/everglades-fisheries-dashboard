@@ -7,7 +7,7 @@ const fallbackRegions = ["Florida Bay / Cape Sable", "Whitewater Bay", "Gulf Coa
 
 export function defaultState(metadata: SourceMetadata): DashboardState {
   return {
-    speciesId: metadata.default_species_id,
+    selectedSpeciesIds: [],
     metric: "cpue",
     areaMode: "regions",
     selectedRegions: [],
@@ -28,10 +28,11 @@ export function stateFromUrl(metadata: SourceMetadata, search: string): Dashboar
   const startYear = startParam === null ? Number.NaN : Number(startParam);
   const endYear = endParam === null ? Number.NaN : Number(endParam);
   const allRegions = metadata.regions?.length ? metadata.regions : fallbackRegions;
+  const selectedSpeciesIds = parseSpeciesList(params.get("species"));
   const selectedRegions = parseList(params.get("regions")).filter((region) => allRegions.includes(region));
   const selectedAreas = parseList(params.get("areas"));
   return {
-    speciesId: params.get("species") || defaults.speciesId,
+    selectedSpeciesIds,
     metric: metric && metricKeys.includes(metric) ? metric : defaults.metric,
     areaMode: areaMode && areaModes.includes(areaMode) ? areaMode : defaults.areaMode,
     selectedRegions: selectedRegions.length === allRegions.length ? [] : selectedRegions,
@@ -43,7 +44,7 @@ export function stateFromUrl(metadata: SourceMetadata, search: string): Dashboar
 
 export function toQuery(state: DashboardState): string {
   const params = new URLSearchParams();
-  params.set("species", state.speciesId);
+  if (state.selectedSpeciesIds.length) params.set("species", state.selectedSpeciesIds.join(","));
   params.set("metric", state.metric);
   params.set("area", state.areaMode);
   if (state.selectedRegions.length) params.set("regions", state.selectedRegions.join(","));
@@ -59,4 +60,10 @@ function parseList(value: string | null): string[] {
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function parseSpeciesList(value: string | null): string[] {
+  const species = parseList(value);
+  if (species.length === 0 || species.some((item) => item.toLowerCase() === "all")) return [];
+  return species;
 }

@@ -11,7 +11,7 @@ const metadata = {
 describe("state helpers", () => {
   it("returns the required default state", () => {
     expect(defaultState(metadata)).toMatchObject({
-      speciesId: "spotted",
+      selectedSpeciesIds: [],
       metric: "cpue",
       areaMode: "regions",
       selectedRegions: [],
@@ -23,9 +23,17 @@ describe("state helpers", () => {
 
   it("round-trips supported query parameters", () => {
     const parsed = stateFromUrl(metadata, "?species=red&metric=catch&area=detailed&regions=Gulf+Coast&areas=6N,6C&start=2010&end=2020");
-    expect(parsed).toMatchObject({ speciesId: "red", metric: "catch", areaMode: "detailed", selectedRegions: ["Gulf Coast"], selectedAreas: ["6N", "6C"] });
+    expect(parsed).toMatchObject({ selectedSpeciesIds: ["red"], metric: "catch", areaMode: "detailed", selectedRegions: ["Gulf Coast"], selectedAreas: ["6N", "6C"] });
     expect(toQuery(parsed)).toContain("species=red");
     expect(toQuery(parsed)).toContain("areas=6N%2C6C");
+  });
+
+  it("supports multiple selected species and all as the default", () => {
+    expect(stateFromUrl(metadata, "").selectedSpeciesIds).toEqual([]);
+    expect(stateFromUrl(metadata, "?species=all").selectedSpeciesIds).toEqual([]);
+    const parsed = stateFromUrl(metadata, "?species=red,snook");
+    expect(parsed.selectedSpeciesIds).toEqual(["red", "snook"]);
+    expect(toQuery(parsed)).toContain("species=red%2Csnook");
   });
 
   it("normalizes all selected regions to no active filter", () => {

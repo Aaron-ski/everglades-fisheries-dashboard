@@ -1,7 +1,7 @@
 import "leaflet/dist/leaflet.css";
 import "./styles/main.css";
 import { renderEffortChart, renderKeptReleasedChart, renderTrendChart, summarizeChart } from "./charts";
-import { detailedAreaOptions, latestCompleteYear, loadDashboardData, recordsForState, speciesById } from "./data";
+import { detailedAreaOptions, latestCompleteYear, loadDashboardData, recordsForState } from "./data";
 import { FisheriesMap } from "./mapView";
 import { formatValue, metricLabels, metricUnits, percentChange, selectedPeriod } from "./metrics";
 import { defaultState, stateFromUrl, toQuery } from "./state";
@@ -32,7 +32,6 @@ async function init(): Promise<void> {
 }
 
 function renderShell(): void {
-  const species = speciesById(data.species).get(state.speciesId);
   const processed = new Date(data.metadata.processed_at).toLocaleDateString();
   const minYear = data.metadata.date_coverage.unique_years[0];
   const maxYear = data.metadata.date_coverage.unique_years.at(-1) ?? data.metadata.date_coverage.default_end_year;
@@ -52,15 +51,17 @@ function renderShell(): void {
     <main id="main">
       <details class="help">
         <summary>How to use this dashboard</summary>
-        <p>Pick a species, metric, area view, and year range. The charts, map, cards, and takeaways update together. Use Reset to return to ${data.metadata.date_coverage.default_start_year}-${data.metadata.date_coverage.default_end_year}, catch rate, all broad regions, and the strongest-coverage species (${species?.display_name ?? "default species"}).</p>
+        <p>Pick one or more species, metric, area view, and year range. The charts, map, cards, and takeaways update together. Use Reset to return to ${data.metadata.date_coverage.default_start_year}-${data.metadata.date_coverage.default_end_year}, catch rate, all species, and all broad regions.</p>
       </details>
       <section class="filters" aria-label="Dashboard filters">
-        <label>Species
-          <input id="speciesInput" list="speciesOptions" value="${species?.display_name ?? ""}" autocomplete="off" />
-          <datalist id="speciesOptions">
-            ${data.species.map((item) => `<option value="${escapeHtml(item.display_name)}" data-id="${item.species_id}">${escapeHtml(item.scientific_name)}</option>`).join("")}
-          </datalist>
-        </label>
+        <div id="speciesPicker" class="filter-field species-picker">
+          <span class="field-label">Species</span>
+          <div class="species-combobox">
+            <input id="speciesSearchInput" type="search" role="combobox" aria-expanded="false" aria-controls="speciesDropdown" placeholder="All species" autocomplete="off" />
+            <span id="speciesSummary" class="species-summary">All species</span>
+            <div id="speciesDropdown" class="species-dropdown" hidden></div>
+          </div>
+        </div>
         <label>Metric
           <select id="metricSelect">
             ${Object.entries(metricLabels).map(([key, label]) => `<option value="${key}">${label}</option>`).join("")}
@@ -174,11 +175,34 @@ function renderShell(): void {
 }
 
 function bindControls(): void {
-  const speciesInput = document.querySelector<HTMLInputElement>("#speciesInput")!;
-  speciesInput.addEventListener("change", () => {
-    const match = data.species.find((item) => item.display_name.toLowerCase() === speciesInput.value.toLowerCase());
-    if (match) state.speciesId = match.species_id;
+  const speciesPicker = document.querySelector<HTMLElement>("#speciesPicker")!;
+  const speciesInput = document.querySelector<HTMLInputElement>("#speciesSearchInput")!;
+  const speciesDropdown = document.querySelector<HTMLElement>("#speciesDropdown")!;
+  speciesInput.addEventListener("focus", () => openSpeciesDropdown());
+  speciesInput.addEventListener("input", () => {
+    openSpeciesDropdown();
+    renderSpeciesDropdown(speciesInput.value);
+  });
+  speciesDropdown.addEventListener("change", (event) => {
+    const input = event.target as HTMLInputElement;
+    if (input.name !== "speciesFilter") return;
+    if (input.value === "all") {
+      state.selectedSpeciesIds = [];
+    } else {
+      const selected = new Set(state.selectedSpeciesIds);
+      if (input.checked) {
+        selected.add(input.value);
+      } else {
+        selected.delete(input.value);
+      }
+      state.selectedSpeciesIds = [...selected];
+    }
+    speciesInput.value = "";
+    renderSpeciesDropdown("");
     update();
+  });
+  document.addEventListener("click", (event) => {
+    if (!speciesPicker.contains(event.target as Node)) closeSpeciesDropdown();
   });
   document.querySelector<HTMLSelectElement>("#metricSelect")!.addEventListener("change", (event) => {
     state.metric = (event.target as HTMLSelectElement).value as MetricKey;
@@ -222,8 +246,7 @@ function bindControls(): void {
 }
 
 function syncControls(): void {
-  const species = speciesById(data.species).get(state.speciesId);
-  document.querySelector<HTMLInputElement>("#speciesInput")!.value = species?.display_name ?? "";
+  syncSpeciesControl();
   document.querySelector<HTMLSelectElement>("#metricSelect")!.value = state.metric;
   document.querySelector<HTMLSelectElement>("#areaModeSelect")!.value = state.areaMode;
   document.querySelectorAll<HTMLInputElement>('input[name="regionFilter"]').forEach((input) => {
@@ -238,6 +261,69 @@ function syncControls(): void {
   const regionWrap = document.querySelector<HTMLElement>("#regionFilterWrap")!;
   regionWrap.hidden = state.areaMode !== "regions";
   document.querySelector<HTMLElement>("#detailedAreaWrap")!.hidden = state.areaMode !== "detailed";
+}
+
+function openSpeciesDropdown(): void {
+  const dropdown = document.querySelector<HTMLElement>("#speciesDropdown")!;
+  dropdown.hidden = false;
+  document.querySelector<HTMLInputElement>("#speciesSearchInput")!.setAttribute("aria-expanded", "true");
+}
+
+function closeSpeciesDropdown(): void {
+  const dropdown = document.querySelector<HTMLElement>("#speciesDropdown")!;
+  dropdown.hidden = true;
+  document.querySelector<HTMLInputElement>("#speciesSearchInput")!.setAttribute("aria-expanded", "false");
+}
+
+function syncSpeciesControl(): void {
+  const input = document.querySelector<HTMLInputElement>("#speciesSearchInput")!;
+  const dropdown = document.querySelector<HTMLElement>("#speciesDropdown")!;
+  const summary = document.querySelector<HTMLElement>("#speciesSummary")!;
+  input.placeholder = speciesSelectionLabel();
+  if (document.activeElement !== input) input.value = "";
+  input.setAttribute("aria-expanded", dropdown.hidden ? "false" : "true");
+  summary.textContent = speciesSelectionLabel();
+  renderSpeciesDropdown(input.value);
+}
+
+function renderSpeciesDropdown(filter: string): void {
+  const dropdown = document.querySelector<HTMLElement>("#speciesDropdown");
+  if (!dropdown) return;
+  const selectedSpecies = new Set(state.selectedSpeciesIds);
+  const query = filter.trim().toLowerCase();
+  const speciesOptions = data.species.filter((item) => {
+    const searchable = `${item.display_name} ${item.scientific_name} ${item.original_name}`.toLowerCase();
+    return searchable.includes(query);
+  });
+  dropdown.innerHTML = `
+    <label class="check-option species-option species-option-all">
+      <input type="checkbox" name="speciesFilter" value="all" ${selectedSpecies.size === 0 ? "checked" : ""} />
+      <span>All</span>
+    </label>
+    ${
+      speciesOptions.length
+        ? speciesOptions
+            .map(
+              (item) => `
+                <label class="check-option species-option">
+                  <input type="checkbox" name="speciesFilter" value="${escapeHtml(item.species_id)}" ${selectedSpecies.has(item.species_id) ? "checked" : ""} />
+                  <span>${escapeHtml(item.display_name)}<small>${escapeHtml(item.scientific_name)}</small></span>
+                </label>
+              `
+            )
+            .join("")
+        : '<p class="species-empty">No species match that search.</p>'
+    }
+  `;
+}
+
+function speciesSelectionLabel(): string {
+  if (state.selectedSpeciesIds.length === 0) return "All species";
+  if (state.selectedSpeciesIds.length === 1) {
+    const selected = data.species.find((item) => item.species_id === state.selectedSpeciesIds[0]);
+    return selected?.display_name ?? "1 species selected";
+  }
+  return `${state.selectedSpeciesIds.length} species selected`;
 }
 
 function update(): void {

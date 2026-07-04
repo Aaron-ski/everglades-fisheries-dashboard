@@ -129,7 +129,7 @@ export interface DashboardData {
 }
 
 export interface DashboardState {
-  speciesId: string;
+  selectedSpeciesIds: string[];
   metric: MetricKey;
   areaMode: AreaMode;
   selectedRegions: string[];
