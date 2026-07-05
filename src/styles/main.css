@@ -456,6 +456,230 @@ legend,
   color: #9db9af;
 }
 
+h3 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+
+.compact-heading {
+  margin-bottom: 10px;
+}
+
+.ecosystem-section {
+  display: grid;
+  gap: 18px;
+}
+
+.ecosystem-note,
+.ecosystem-caption {
+  color: #9db9af;
+}
+
+.ecosystem-partial-note {
+  padding: 10px 12px;
+  border-left: 5px solid #f2c365;
+  background: #241c0e;
+  color: #f6e7c5;
+}
+
+.ecosystem-grid {
+  display: grid;
+  grid-template-columns: minmax(420px, 1fr) minmax(460px, 1.15fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.ecosystem-visual {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #263f38;
+  border-radius: 8px;
+  background: #0a1815;
+}
+
+.scorecard-table {
+  display: grid;
+  gap: 8px;
+}
+
+.scorecard-header,
+.scorecard-row {
+  display: grid;
+  grid-template-columns: minmax(170px, 1.2fr) minmax(180px, 1fr) minmax(150px, 0.95fr) minmax(150px, 0.9fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.scorecard-header {
+  color: #9db9af;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.scorecard-row {
+  padding: 10px;
+  border: 1px solid #263f38;
+  border-radius: 8px;
+  background: #0f241f;
+}
+
+.scorecard-row small,
+.scorecard-row span {
+  display: block;
+}
+
+.scorecard-row small {
+  color: #9db9af;
+  font-weight: 700;
+}
+
+.species-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.species-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #174b42;
+  color: #ffffff;
+  font-weight: 900;
+}
+
+.condition-pill {
+  display: inline-block;
+  width: fit-content;
+  margin-bottom: 4px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: #071412;
+  background: #c8c7b0;
+}
+
+.condition-pill.above-average {
+  background: #7bb6ba;
+}
+
+.condition-pill.below-average {
+  background: #dd9b63;
+}
+
+.condition-pill.insufficient-data {
+  background: #94a3b8;
+}
+
+.sparkline {
+  display: block;
+  width: 128px;
+  height: 38px;
+  margin-bottom: 4px;
+  overflow: visible;
+}
+
+.sparkline polyline {
+  fill: none;
+  stroke: #8bd9c3;
+  stroke-width: 2;
+}
+
+.sparkline-trend {
+  stroke: #f2c365;
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+}
+
+.sparkline-empty {
+  color: #9db9af;
+}
+
+.confidence {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.confidence-dots {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.confidence-dots i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid #9db9af;
+}
+
+.confidence-dots i.active {
+  background: #f2c365;
+  border-color: #f2c365;
+}
+
+.heatmap-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+  border: 1px solid #263f38;
+  border-radius: 8px;
+}
+
+.ecosystem-heatmap {
+  min-height: 360px;
+}
+
+.ecosystem-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 10px;
+  color: #d7e6de;
+  font-size: 0.85rem;
+}
+
+.ecosystem-legend span,
+.anomaly-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ecosystem-legend i,
+.legend-swatch {
+  display: inline-block;
+  width: 22px;
+  height: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+}
+
+.striped {
+  background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.35) 0 3px, transparent 3px 7px) !important;
+}
+
+.heatmap-detail {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #263f38;
+  border-radius: 8px;
+  background: #0f241f;
+}
+
+.compact-select {
+  min-width: 250px;
+}
+
+.anomaly-visual {
+  display: grid;
+  gap: 12px;
+}
+
+.ecosystem-map {
+  height: 520px;
+}
+
 .chart {
   width: 100%;
   min-height: 470px;
@@ -591,8 +815,14 @@ th {
 @media (max-width: 1100px) {
   .filters,
   .cards,
-  .split {
+  .split,
+  .ecosystem-grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .scorecard-header,
+  .scorecard-row {
+    grid-template-columns: 1fr;
   }
 
   .area-check-grid {
@@ -614,8 +844,13 @@ th {
 
   .filters,
   .cards,
-  .split {
+  .split,
+  .ecosystem-grid {
     grid-template-columns: 1fr;
+  }
+
+  .compact-select {
+    min-width: 0;
   }
 
   .area-check-grid {
@@ -628,6 +863,10 @@ th {
 
   .map {
     height: 430px;
+  }
+
+  .ecosystem-map {
+    height: 460px;
   }
 
   .card strong {

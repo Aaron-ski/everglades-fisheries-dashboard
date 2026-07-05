@@ -2,6 +2,19 @@ import "leaflet/dist/leaflet.css";
 import "./styles/main.css";
 import { renderEffortChart, renderKeptReleasedChart, renderTrendChart, summarizeChart } from "./charts";
 import { detailedAreaOptions, latestCompleteYear, loadDashboardData, recordsForState } from "./data";
+import { renderEcosystemHeatmap, heatmapCellKey } from "./ecosystemCharts";
+import { EcosystemAnomalyMap, colorForAnomaly, indicatorLabel } from "./ecosystemMap";
+import { buildAnomalyAreas, buildHeatmapCells, buildScorecard, mappedAreaCodesFromGeojson } from "./ecosystemSignals";
+import {
+  INDICATOR_COMPOSITE_ID,
+  INDICATOR_SPECIES,
+  type AnomalyArea,
+  type BaselineWindow,
+  type EcosystemIndicatorId,
+  type EcosystemScope,
+  type HeatmapCell,
+  type ScorecardRow
+} from "./ecosystemTypes";
 import { FisheriesMap } from "./mapView";
 import { formatValue, metricLabels, metricUnits, percentChange, selectedPeriod } from "./metrics";
 import { defaultState, stateFromUrl, toQuery } from "./state";
@@ -15,6 +28,9 @@ const app = appElement;
 let data: DashboardData;
 let state: DashboardState;
 let fisheriesMap: FisheriesMap | null = null;
+let ecosystemAnomalyMap: EcosystemAnomalyMap | null = null;
+let ecosystemIndicator: EcosystemIndicatorId = INDICATOR_COMPOSITE_ID;
+let selectedHeatmapCellKey: string | null = null;
 
 void init();
 
@@ -121,6 +137,59 @@ function renderShell(): void {
         <div id="map" class="map" aria-label="Interactive map of Everglades fishing areas"></div>
         <div id="mapTable" class="map-table"></div>
       </section>
+      <section class="panel ecosystem-section" aria-labelledby="ecosystemTitle">
+        <div class="section-heading">
+          <div>
+            <h2 id="ecosystemTitle">Coastal Ecosystem Signals</h2>
+            <p>These indicators use recreational catch rates to show changes in coastal fishery condition. They are not direct estimates of fish population size or overall ecosystem health.</p>
+          </div>
+          <p class="ecosystem-note">This section always evaluates Common Snook, Red Drum, Spotted Seatrout, and Gray Snapper, regardless of the global species filter.</p>
+        </div>
+        <div id="ecosystemPartialNote" class="ecosystem-partial-note" hidden></div>
+        <div class="ecosystem-grid">
+          <div class="ecosystem-visual">
+            <div class="section-heading compact-heading">
+              <h3>Current Condition Scorecard</h3>
+              <p id="scorecardSubtitle"></p>
+            </div>
+            <div id="conditionScorecard" class="scorecard-table" aria-live="polite"></div>
+          </div>
+          <div class="ecosystem-visual">
+            <div class="section-heading compact-heading">
+              <h3>Species-by-Year Condition Heatmap</h3>
+              <p id="heatmapSubtitle"></p>
+            </div>
+            <div class="heatmap-scroll">
+              <div id="ecosystemHeatmap" class="ecosystem-heatmap" role="img" aria-label="Species by year condition heatmap"></div>
+            </div>
+            <div id="heatmapLegend" class="ecosystem-legend"></div>
+            <div id="heatmapDetail" class="heatmap-detail" aria-live="polite"></div>
+            <p class="ecosystem-caption">Each cell compares that species' annual catch rate with its own catch-rate history during the selected timeline; it does not compare CPUE magnitudes across different species.</p>
+          </div>
+        </div>
+        <div class="ecosystem-visual anomaly-visual">
+          <div class="section-heading">
+            <div>
+              <h3>Where Conditions Are Changing</h3>
+              <p id="anomalySubtitle"></p>
+            </div>
+            <label class="compact-select">Indicator
+              <select id="ecosystemIndicatorSelect" aria-label="Anomaly map indicator">
+                <option value="${INDICATOR_COMPOSITE_ID}">Indicator-species composite</option>
+                ${INDICATOR_SPECIES.map((species) => `<option value="${species.id}">${escapeHtml(species.commonName)}</option>`).join("")}
+              </select>
+            </label>
+          </div>
+          <div class="map-actions">
+            <button id="showAllEcosystemAreasButton" type="button">Show all areas</button>
+            <span id="anomalyLegend" class="legend anomaly-legend"></span>
+          </div>
+          <div id="anomalyEmptyState" class="empty-state" hidden></div>
+          <div id="ecosystemAnomalyMap" class="map ecosystem-map" aria-label="Interactive map of coastal ecosystem condition anomalies"></div>
+          <p class="ecosystem-caption">Positive anomalies mean recent surveyed catch rates were higher than the selected historical baseline. Negative anomalies mean they were lower. These differences can reflect ecological conditions, fishing behavior, regulations, access, and survey coverage.</p>
+          <div id="anomalyTable" class="map-table"></div>
+        </div>
+      </section>
       <section id="cards" class="cards" aria-label="Key metrics"></section>
       <section class="panel">
         <div class="section-heading">
@@ -155,6 +224,13 @@ function renderShell(): void {
           <p><strong>Dataset:</strong> Recreational fishing catch and effort in Everglades National Park, 1980-2025, from the National Park Service IRMA data package.</p>
           <p><strong>Coverage:</strong> ${data.metadata.date_coverage.min_date} through ${data.metadata.date_coverage.max_date}. The default view is ${data.metadata.date_coverage.default_start_year}-${data.metadata.date_coverage.default_end_year}; 2025 is selectable but marked partial.</p>
           <p><strong>CPUE:</strong> ${data.metadata.cpue.formula}. Unit: ${data.metadata.cpue.unit}. ${data.metadata.cpue.limitation}</p>
+          <p><strong>Coastal ecosystem signals:</strong> Common Snook, Red Drum, Spotted Seatrout, and Gray Snapper are fixed fishery-condition indicators. They use surveyed catch rate and reported catch as coastal fishery signals, not as a comprehensive ecosystem-health score or direct fish-population estimate.</p>
+          <p><strong>Scorecard method:</strong> Current condition compares the latest five complete years inside the selected timeline with rolling five-year aggregate CPUE windows from the selected history. Percentiles below 25 are Below Average, 25 through 75 are Near Average, and above 75 are Above Average. At least eight complete years and three valid rolling windows are required.</p>
+          <p><strong>Trend and confidence:</strong> Trend uses a simple linear fit to annual CPUE, normalized as slope times selected-year span divided by mean annual CPUE. More than +10% is Increasing, less than -10% is Decreasing, and the middle band is Stable. Data coverage confidence is High, Medium, or Low based on valid CPUE year coverage, valid recent years, partial years, interrupted coverage, trips, and effort.</p>
+          <p><strong>Heatmap method:</strong> Each species-year cell ranks annual CPUE against that species' own selected-timeline distribution. Partial years, interrupted coverage, missing effort, and missing observations are marked as limited data even when a CPUE value can still be displayed.</p>
+          <p><strong>Anomaly map method:</strong> The map compares recent five-year CPUE with the selected historical baseline before that window. For the default timeline, the recent window is 2020-2024 and the baseline is 2005-2019. Species anomalies use ((recent CPUE - baseline CPUE) / baseline CPUE) * 100 and require at least three valid recent years and three valid baseline years. Zero or missing baselines are not converted to infinite percentages.</p>
+          <p><strong>Indicator composite:</strong> The composite is the arithmetic mean of valid species-level anomaly percentages with equal weight per species and at least two contributing species. It does not combine raw fish counts across species.</p>
+          <p><strong>Interpretation:</strong> These visuals should be read as coastal ecosystem signals and fishery condition indicators. They can reflect ecological conditions, fishing behavior, regulations, access, and survey coverage; they do not prove a specific environmental cause or definitive population change.</p>
           <p><strong>Release rate:</strong> released / (kept + released), null when counts are incomplete or the denominator is zero.</p>
           <p><strong>Quality handling:</strong> QA/QC flag counts are surfaced. The source metadata says full QA/QC methodology is forthcoming.</p>
           <p><strong>Geography:</strong> ${data.metadata.geography.source_format}, ${data.metadata.geography.source_crs}, converted to ${data.metadata.geography.browser_crs}. Numeric historic area codes do not have separate polygons.</p>
@@ -167,6 +243,12 @@ function renderShell(): void {
   `;
 
   fisheriesMap = new FisheriesMap(document.querySelector("#map") as HTMLElement, data.areasGeojson, (areaCode, additive) => {
+    state.areaMode = "detailed";
+    state.selectedAreas = nextSelectedAreas(areaCode, additive);
+    syncControls();
+    update();
+  });
+  ecosystemAnomalyMap = new EcosystemAnomalyMap(document.querySelector("#ecosystemAnomalyMap") as HTMLElement, data.areasGeojson, (areaCode, additive) => {
     state.areaMode = "detailed";
     state.selectedAreas = nextSelectedAreas(areaCode, additive);
     syncControls();
@@ -236,9 +318,20 @@ function bindControls(): void {
   });
   document.querySelector<HTMLButtonElement>("#resetButton")!.addEventListener("click", () => {
     state = defaultState(data.metadata);
+    ecosystemIndicator = INDICATOR_COMPOSITE_ID;
+    selectedHeatmapCellKey = null;
     update();
   });
   document.querySelector<HTMLButtonElement>("#showAllAreasButton")!.addEventListener("click", () => {
+    state.areaMode = "detailed";
+    state.selectedAreas = [];
+    update();
+  });
+  document.querySelector<HTMLSelectElement>("#ecosystemIndicatorSelect")!.addEventListener("change", (event) => {
+    ecosystemIndicator = (event.target as HTMLSelectElement).value as EcosystemIndicatorId;
+    update();
+  });
+  document.querySelector<HTMLButtonElement>("#showAllEcosystemAreasButton")!.addEventListener("click", () => {
     state.areaMode = "detailed";
     state.selectedAreas = [];
     update();
@@ -258,6 +351,7 @@ function syncControls(): void {
   document.querySelector<HTMLInputElement>("#startYearRange")!.value = String(state.startYear);
   document.querySelector<HTMLInputElement>("#endYearRange")!.value = String(state.endYear);
   document.querySelector("#yearRangeLabel")!.textContent = `${state.startYear}-${state.endYear}`;
+  document.querySelector<HTMLSelectElement>("#ecosystemIndicatorSelect")!.value = ecosystemIndicator;
   const regionWrap = document.querySelector<HTMLElement>("#regionFilterWrap")!;
   regionWrap.hidden = state.areaMode !== "regions";
   document.querySelector<HTMLElement>("#detailedAreaWrap")!.hidden = state.areaMode !== "detailed";
@@ -339,7 +433,217 @@ function update(): void {
   document.querySelector("#trendSummary")!.textContent = summarizeChart(records, state.metric);
   renderTakeaways(records);
   renderMap();
+  renderEcosystemSignals();
   fisheriesMap?.invalidate();
+  ecosystemAnomalyMap?.invalidate();
+}
+
+function renderEcosystemSignals(): void {
+  const scope = ecosystemScope();
+  const scorecard = buildScorecard(data, scope, state.startYear, state.endYear);
+  const heatmapCells = buildHeatmapCells(data, scope, state.startYear, state.endYear);
+  const anomaly = buildAnomalyAreas(data, scope, state.startYear, state.endYear, ecosystemIndicator);
+  const recentWindow = scorecard[0]?.recentWindow ?? anomaly.window;
+  const partialNote = document.querySelector<HTMLElement>("#ecosystemPartialNote")!;
+  partialNote.hidden = !recentWindow.excludedPartialEndYear;
+  partialNote.textContent = recentWindow.excludedPartialEndYear ? `Partial ${state.endYear} is selectable in the dashboard but is excluded from recent five-year ecosystem calculations; the latest complete comparison year is ${recentWindow.recentEnd}.` : "";
+  document.querySelector("#scorecardSubtitle")!.textContent = `Latest 5-year period (${recentWindow.recentStart}-${recentWindow.recentEnd}) compared with selected history (${state.startYear}-${state.endYear})`;
+  document.querySelector("#heatmapSubtitle")!.textContent = `Annual CPUE relative to each species' distribution during ${state.startYear}-${state.endYear}`;
+  document.querySelector("#anomalySubtitle")!.textContent = `Five-year CPUE anomaly: ${anomaly.window.recentStart}-${anomaly.window.recentEnd} compared with the ${anomaly.window.baselineStart}-${anomaly.window.baselineEnd} baseline`;
+  renderScorecard(scorecard);
+  renderHeatmap(heatmapCells);
+  renderAnomalyMap(anomaly.areas, anomaly.window, anomaly.emptyReason);
+}
+
+function ecosystemScope(): EcosystemScope {
+  return {
+    areaMode: state.areaMode,
+    selectedRegions: state.selectedRegions,
+    selectedAreas: state.selectedAreas,
+    mappedAreaCodes: mappedAreaCodesFromGeojson(data.areasGeojson)
+  };
+}
+
+function renderScorecard(rows: ScorecardRow[]): void {
+  document.querySelector("#conditionScorecard")!.innerHTML = `
+    <div class="scorecard-header" role="row">
+      <span>Indicator species</span>
+      <span>Current condition versus selected history</span>
+      <span>Selected-period trend</span>
+      <span>Data confidence</span>
+    </div>
+    ${rows.map((row) => scorecardRowHtml(row)).join("")}
+  `;
+}
+
+function scorecardRowHtml(row: ScorecardRow): string {
+  const percentile = row.percentile === null ? "percentile unavailable" : `${row.percentile.toFixed(1)}th percentile`;
+  const normalizedTrend = row.normalizedTrend === null ? "" : ` (${formatPercent(row.normalizedTrend * 100)})`;
+  return `
+    <article class="scorecard-row">
+      <div class="species-cell">
+        <span class="species-icon" aria-hidden="true">${escapeHtml(row.species.initials)}</span>
+        <span><strong>${escapeHtml(row.species.commonName)}</strong><small>${escapeHtml(row.species.scientificName)}</small></span>
+      </div>
+      <div>
+        <strong class="condition-pill ${conditionClass(row.condition)}">${row.condition}</strong>
+        <span>${percentile}</span>
+        <small>Recent CPUE: ${formatCpue(row.currentCpue)}; catch ${row.currentCatch.toLocaleString()}, effort ${formatEffort(row.currentEffort)}</small>
+      </div>
+      <div>
+        ${sparklineSvg(row)}
+        <strong>${row.trend}${normalizedTrend}</strong>
+        <small>Trend, ${state.startYear}-${state.endYear}</small>
+      </div>
+      <div>
+        <span class="confidence confidence-${row.confidence.toLowerCase()}" title="${escapeHtml(row.confidenceReason)}" aria-label="${row.confidence} data coverage confidence. ${escapeHtml(row.confidenceReason)}">
+          ${confidenceDots(row.confidence)} <strong>${row.confidence}</strong>
+        </span>
+        <small>${row.validYears}/${row.eligibleYears} valid years; ${row.recentValidYears}/${row.recentWindow.years.length} recent</small>
+      </div>
+    </article>
+  `;
+}
+
+function renderHeatmap(cells: HeatmapCell[]): void {
+  const selectedCell = selectedHeatmapCellKey ? cells.find((cell) => heatmapCellKey(cell.species.id, cell.year) === selectedHeatmapCellKey) : null;
+  if (selectedHeatmapCellKey && !selectedCell) selectedHeatmapCellKey = null;
+  renderEcosystemHeatmap(document.querySelector("#ecosystemHeatmap") as HTMLElement, cells, state.startYear, state.endYear, selectedHeatmapCellKey, (key) => {
+    selectedHeatmapCellKey = key;
+    renderEcosystemSignals();
+  });
+  document.querySelector("#heatmapLegend")!.innerHTML = [
+    ["Limited or missing data", "#334155", "striped"],
+    ["Below 10th", "#b85c38", ""],
+    ["10th-25th", "#dd9b63", ""],
+    ["25th-50th", "#c8c7b0", ""],
+    ["50th-75th", "#7bb6ba", ""],
+    ["75th-90th", "#2d8ca8", ""],
+    ["Above 90th", "#126782", ""]
+  ]
+    .map(([label, color, extra]) => `<span><i class="${extra}" style="background:${color}"></i>${label}</span>`)
+    .join("");
+  const activeCell = selectedHeatmapCellKey ? cells.find((cell) => heatmapCellKey(cell.species.id, cell.year) === selectedHeatmapCellKey) : null;
+  document.querySelector("#heatmapDetail")!.innerHTML = activeCell
+    ? `<strong>${escapeHtml(activeCell.species.commonName)} in ${activeCell.year}</strong>: ${formatCpue(activeCell.cpue)} fish per angler-hour; ${activeCell.percentile === null ? "limited percentile" : `${activeCell.percentile.toFixed(1)}th percentile`}; ${escapeHtml(activeCell.band)}. Catch ${activeCell.catch.toLocaleString()}, effort ${formatEffort(activeCell.effort)}, trips ${activeCell.surveyedTrips.toLocaleString()}, coverage ${escapeHtml(activeCell.coverageStatus)}.`
+    : "Select a heatmap cell to see its CPUE, percentile band, catch, effort, trips, and coverage details.";
+}
+
+function renderAnomalyMap(areas: AnomalyArea[], window: BaselineWindow, emptyReason: string | null): void {
+  const empty = document.querySelector<HTMLElement>("#anomalyEmptyState")!;
+  empty.hidden = emptyReason === null;
+  empty.textContent = emptyReason ?? "";
+  const mapElement = document.querySelector<HTMLElement>("#ecosystemAnomalyMap")!;
+  mapElement.hidden = emptyReason !== null;
+  ecosystemAnomalyMap?.update(areas, ecosystemIndicator, window, state.selectedAreas);
+  renderAnomalyLegend();
+  renderAnomalyTable(areas, emptyReason);
+}
+
+function renderAnomalyLegend(): void {
+  const categories = [
+    "Greater than +50%",
+    "+25% to +50%",
+    "+10% to +25%",
+    "-10% to +10%",
+    "-25% to -10%",
+    "-50% to -25%",
+    "Less than -50%",
+    "Limited data"
+  ];
+  document.querySelector("#anomalyLegend")!.innerHTML = categories
+    .map((category) => `<span><span class="legend-swatch ${category === "Limited data" ? "striped" : ""}" style="background:${colorForAnomaly(category)}"></span>${category}</span>`)
+    .join("");
+}
+
+function renderAnomalyTable(areas: AnomalyArea[], emptyReason: string | null): void {
+  if (emptyReason) {
+    document.querySelector("#anomalyTable")!.innerHTML = "";
+    return;
+  }
+  const rows = areas
+    .filter((area) => area.isActive)
+    .sort((a, b) => {
+      if (a.anomalyPercent === null && b.anomalyPercent === null) return a.areaCode.localeCompare(b.areaCode);
+      if (a.anomalyPercent === null) return 1;
+      if (b.anomalyPercent === null) return -1;
+      return Math.abs(b.anomalyPercent) - Math.abs(a.anomalyPercent);
+    })
+    .map(
+      (area) => `<tr>
+        <td>${escapeHtml(area.areaCode)} - ${escapeHtml(area.areaName)}</td>
+        <td>${escapeHtml(area.broadRegion)}</td>
+        <td>${formatCpue(area.recentCpue)}</td>
+        <td>${formatCpue(area.baselineCpue)}</td>
+        <td>${formatPercent(area.anomalyPercent)}</td>
+        <td>${escapeHtml(area.category)}</td>
+        <td>${area.validContributingSpecies}</td>
+        <td>${escapeHtml(area.confidence)}${area.coverageWarnings.length ? `; ${escapeHtml(area.coverageWarnings.join("; "))}` : ""}</td>
+      </tr>`
+    )
+    .join("");
+  document.querySelector("#anomalyTable")!.innerHTML = `
+    <table>
+      <caption>Anomaly values by fishing area for ${escapeHtml(indicatorLabel(ecosystemIndicator))}</caption>
+      <thead><tr><th>Area</th><th>Broad region</th><th>Recent CPUE</th><th>Baseline CPUE</th><th>Anomaly</th><th>Category</th><th>Valid species</th><th>Coverage/confidence</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="8">No mapped areas match the active selection.</td></tr>'}</tbody>
+    </table>
+  `;
+}
+
+function sparklineSvg(row: ScorecardRow): string {
+  const valid = row.annual.filter((item): item is typeof item & { cpue: number } => item.cpue !== null);
+  if (valid.length < 2) return '<span class="sparkline-empty">No sparkline</span>';
+  const width = 128;
+  const height = 38;
+  const minYear = Math.min(...valid.map((item) => item.year));
+  const maxYear = Math.max(...valid.map((item) => item.year));
+  const minValue = Math.min(...valid.map((item) => item.cpue));
+  const maxValue = Math.max(...valid.map((item) => item.cpue));
+  const x = (year: number) => (maxYear === minYear ? width / 2 : ((year - minYear) / (maxYear - minYear)) * width);
+  const y = (value: number) => (maxValue === minValue ? height / 2 : height - ((value - minValue) / (maxValue - minValue)) * height);
+  const points = valid.map((item) => `${x(item.year).toFixed(1)},${y(item.cpue).toFixed(1)}`).join(" ");
+  const trend = fittedSparkline(valid);
+  const trendLine = trend
+    ? `<line x1="${x(minYear).toFixed(1)}" y1="${y(trend.start).toFixed(1)}" x2="${x(maxYear).toFixed(1)}" y2="${y(trend.end).toFixed(1)}" class="sparkline-trend" />`
+    : "";
+  return `<svg class="sparkline" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(row.species.commonName)} annual CPUE sparkline for ${state.startYear}-${state.endYear}; trend ${row.trend}">
+    <polyline points="${points}" />
+    ${trendLine}
+  </svg>`;
+}
+
+function fittedSparkline(points: Array<{ year: number; cpue: number }>): { start: number; end: number } | null {
+  const meanYear = points.reduce((sum, point) => sum + point.year, 0) / points.length;
+  const meanValue = points.reduce((sum, point) => sum + point.cpue, 0) / points.length;
+  const denominator = points.reduce((sum, point) => sum + (point.year - meanYear) ** 2, 0);
+  if (denominator === 0) return null;
+  const slope = points.reduce((sum, point) => sum + (point.year - meanYear) * (point.cpue - meanValue), 0) / denominator;
+  const intercept = meanValue - slope * meanYear;
+  const first = Math.min(...points.map((point) => point.year));
+  const last = Math.max(...points.map((point) => point.year));
+  return { start: slope * first + intercept, end: slope * last + intercept };
+}
+
+function conditionClass(condition: string): string {
+  return condition.toLowerCase().replaceAll(" ", "-");
+}
+
+function confidenceDots(confidence: string): string {
+  const active = confidence === "High" ? 3 : confidence === "Medium" ? 2 : 1;
+  return `<span class="confidence-dots" aria-hidden="true">${[1, 2, 3].map((dot) => `<i class="${dot <= active ? "active" : ""}"></i>`).join("")}</span>`;
+}
+
+function formatCpue(value: number | null): string {
+  return value === null ? "No data" : value.toFixed(3);
+}
+
+function formatEffort(value: number | null): string {
+  return value === null ? "No data" : value.toLocaleString(undefined, { maximumFractionDigits: 1 });
+}
+
+function formatPercent(value: number | null): string {
+  return value === null ? "Limited data" : `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
 }
 
 function renderWarnings(records: DisplayRecord[]): void {

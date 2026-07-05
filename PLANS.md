@@ -10,3 +10,14 @@
 8. Add deterministic plain-language takeaways and tests for trend, coverage, sparse-data, and zero-baseline behavior.
 9. Write beginner-friendly README, methodology/source sections, license, `.gitignore`, and GitHub Pages workflow.
 10. Run Python validation, frontend tests, linting, production build, and browser smoke checks; fix issues until the completed MVP satisfies the brief.
+
+## Coastal Ecosystem Signals Extension
+
+1. Add centralized indicator-species definitions and ecosystem signal types.
+2. Implement reusable calculations for active geographic scope, species-specific annual CPUE, latest complete five-year windows, rolling five-year percentiles, normalized trends, data-confidence labels, heatmap bins, and area anomaly values.
+3. Cover the calculation utilities with focused Vitest unit tests, including shared-effort handling, partial-year exclusion, zero baselines, insufficient windows, composites, and active filters.
+4. Add a scorecard, species-by-year heatmap, and second Leaflet anomaly map as additions to the existing dashboard.
+5. Wire all three visuals into the existing `update()` lifecycle, global timeline, area filters, reset behavior, and independent anomaly indicator selector.
+6. Preserve the original fishing-area map and initialize the anomaly map as a separate Leaflet instance.
+7. Update methodology copy, README documentation, responsive styling, and accessibility labels.
+8. Run Python tests, frontend tests, lint, production build, browser smoke checks, and GitHub Pages deployment verification.

@@ -42,6 +42,18 @@ Interviews are deduplicated by `interviewLocation`, `eventDate`, and `interviewN
 
 Other measures include total reported catch, fish kept, fish released, release rate, fishing effort, surveyed trips, and trailer counts. Trailer counts are kept separate from CPUE.
 
+## Coastal Ecosystem Signals
+
+The dashboard includes a `Coastal Ecosystem Signals` section with three additional interactive visuals:
+
+- `Current Condition Scorecard`: compares the latest five complete years of surveyed catch rate for Common Snook, Red Drum, Spotted Seatrout, and Gray Snapper with rolling five-year windows from the selected timeline.
+- `Species-by-Year Condition Heatmap`: ranks each species' annual CPUE against that same species' selected-timeline distribution. The cells compare a species with its own history, not CPUE magnitudes across species.
+- `Where Conditions Are Changing`: a second Leaflet map that compares recent five-year CPUE with the selected historical baseline for either one indicator species or an equal-weight indicator-species composite.
+
+For the default `2005-2024` timeline, the current/recent period is `2020-2024` and the anomaly-map baseline is `2005-2019`. If partial 2025 is selected, the latest complete year remains 2024 for recent five-year ecosystem calculations.
+
+The indicator composite averages valid species-level anomaly percentages with equal weight per species and requires at least two contributing species. It does not combine raw catch counts across species. These visuals are fishery-condition signals based on surveyed catch rates; they are not a comprehensive ecosystem-health score and do not prove fish populations or environmental causes changed.
+
 ## Important Limitations
 
 - The source does not include a precomputed CPUE field.
