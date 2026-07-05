@@ -96,19 +96,19 @@ export class EcosystemAnomalyMap {
 export function colorForAnomaly(category: string): string {
   switch (category) {
     case "Greater than +50%":
-      return "#126782";
+      return "#15803d";
     case "+25% to +50%":
-      return "#2d8ca8";
+      return "#4ade80";
     case "+10% to +25%":
-      return "#7bb6ba";
+      return "#bef264";
     case "-10% to +10%":
-      return "#c8c7b0";
+      return "#facc15";
     case "-25% to -10%":
-      return "#dd9b63";
+      return "#f97316";
     case "-50% to -25%":
-      return "#c97847";
+      return "#dc2626";
     case "Less than -50%":
-      return "#b85c38";
+      return "#991b1b";
     default:
       return "#64748b";
   }
@@ -130,4 +130,3 @@ function formatEffort(value: number | null): string {
 function formatPercent(value: number | null): string {
   return value === null ? "Limited data" : `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
 }
-

@@ -16,7 +16,7 @@
 1. Add centralized indicator-species definitions and ecosystem signal types.
 2. Implement reusable calculations for active geographic scope, species-specific annual CPUE, latest complete five-year windows, rolling five-year percentiles, normalized trends, data-confidence labels, heatmap bins, and area anomaly values.
 3. Cover the calculation utilities with focused Vitest unit tests, including shared-effort handling, partial-year exclusion, zero baselines, insufficient windows, composites, and active filters.
-4. Add a scorecard, species-by-year heatmap, and second Leaflet anomaly map as additions to the existing dashboard.
+4. Add a species-by-year heatmap and second Leaflet anomaly map as additions to the existing dashboard.
 5. Wire all three visuals into the existing `update()` lifecycle, global timeline, area filters, reset behavior, and independent anomaly indicator selector.
 6. Preserve the original fishing-area map and initialize the anomaly map as a separate Leaflet instance.
 7. Update methodology copy, README documentation, responsive styling, and accessibility labels.

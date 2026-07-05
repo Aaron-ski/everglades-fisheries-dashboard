@@ -3,12 +3,12 @@ import type { HeatmapCell } from "./ecosystemTypes";
 
 const heatmapColors = [
   [0, "#334155"],
-  [0.166, "#b85c38"],
-  [0.333, "#dd9b63"],
-  [0.5, "#c8c7b0"],
-  [0.666, "#7bb6ba"],
-  [0.833, "#2d8ca8"],
-  [1, "#126782"]
+  [0.166, "#b91c1c"],
+  [0.333, "#f97316"],
+  [0.5, "#facc15"],
+  [0.666, "#bef264"],
+  [0.833, "#4ade80"],
+  [1, "#15803d"]
 ];
 
 const plotConfig: Partial<Plotly.Config> = {

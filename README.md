@@ -44,9 +44,8 @@ Other measures include total reported catch, fish kept, fish released, release r
 
 ## Coastal Ecosystem Signals
 
-The dashboard includes a `Coastal Ecosystem Signals` section with three additional interactive visuals:
+The dashboard includes a `Coastal Ecosystem Signals` section with two additional interactive visuals:
 
-- `Current Condition Scorecard`: compares the latest five complete years of surveyed catch rate for Common Snook, Red Drum, Spotted Seatrout, and Gray Snapper with rolling five-year windows from the selected timeline.
 - `Species-by-Year Condition Heatmap`: ranks each species' annual CPUE against that same species' selected-timeline distribution. The cells compare a species with its own history, not CPUE magnitudes across species.
 - `Where Conditions Are Changing`: a second Leaflet map that compares recent five-year CPUE with the selected historical baseline for either one indicator species or an equal-weight indicator-species composite.
 

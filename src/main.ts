@@ -4,7 +4,7 @@ import { renderEffortChart, renderKeptReleasedChart, renderTrendChart, summarize
 import { detailedAreaOptions, latestCompleteYear, loadDashboardData, recordsForState } from "./data";
 import { renderEcosystemHeatmap, heatmapCellKey } from "./ecosystemCharts";
 import { EcosystemAnomalyMap, colorForAnomaly, indicatorLabel } from "./ecosystemMap";
-import { buildAnomalyAreas, buildHeatmapCells, buildScorecard, mappedAreaCodesFromGeojson } from "./ecosystemSignals";
+import { buildAnomalyAreas, buildHeatmapCells, latestFiveCompleteYears, mappedAreaCodesFromGeojson } from "./ecosystemSignals";
 import {
   INDICATOR_COMPOSITE_ID,
   INDICATOR_SPECIES,
@@ -12,13 +12,11 @@ import {
   type BaselineWindow,
   type EcosystemIndicatorId,
   type EcosystemScope,
-  type HeatmapCell,
-  type ScorecardRow
+  type HeatmapCell
 } from "./ecosystemTypes";
 import { FisheriesMap } from "./mapView";
 import { formatValue, metricLabels, metricUnits, percentChange, selectedPeriod } from "./metrics";
 import { defaultState, stateFromUrl, toQuery } from "./state";
-import { buildTakeaways } from "./takeaways";
 import type { DashboardData, DashboardState, DisplayRecord, MetricKey } from "./types";
 
 const appElement = document.querySelector<HTMLDivElement>("#app");
@@ -54,10 +52,16 @@ function renderShell(): void {
   const areaOptions = detailedAreaOptions(data);
   app.innerHTML = `
     <header class="site-header">
-      <div>
-        <p class="eyebrow">National Park Service public data</p>
-        <h1>Everglades Fisheries Explorer</h1>
-        <p class="subtitle">Twenty years of recreational fishing trends in Everglades National Park</p>
+      <div class="header-brand">
+        <div class="nps-data-badge" aria-label="National Park Service public data badge">
+          <strong>NPS</strong>
+          <span>DATA</span>
+        </div>
+        <div>
+          <p class="eyebrow">National Park Service public data</p>
+          <h1>Everglades Fisheries Explorer</h1>
+          <p class="subtitle">Twenty years of recreational fishing trends in Everglades National Park</p>
+        </div>
       </div>
       <div class="header-meta">
         <span>Last processed ${processed}</span>
@@ -65,65 +69,64 @@ function renderShell(): void {
       </div>
     </header>
     <main id="main">
-      <details class="help">
-        <summary>How to use this dashboard</summary>
-        <p>Pick one or more species, metric, area view, and year range. The charts, map, cards, and takeaways update together. Use Reset to return to ${data.metadata.date_coverage.default_start_year}-${data.metadata.date_coverage.default_end_year}, catch rate, all species, and all broad regions.</p>
-      </details>
-      <section class="filters" aria-label="Dashboard filters">
-        <div id="speciesPicker" class="filter-field species-picker">
-          <span class="field-label">Species</span>
-          <div class="species-combobox">
-            <input id="speciesSearchInput" type="search" role="combobox" aria-expanded="false" aria-controls="speciesDropdown" placeholder="All species" autocomplete="off" />
-            <span id="speciesSummary" class="species-summary">All species</span>
-            <div id="speciesDropdown" class="species-dropdown" hidden></div>
+      <details class="filters-panel">
+        <summary>Dashboard filters</summary>
+        <section class="filters" aria-label="Dashboard filters">
+          <div id="speciesPicker" class="filter-field species-picker">
+            <span class="field-label">Species</span>
+            <div class="species-combobox">
+              <input id="speciesSearchInput" type="search" role="combobox" aria-expanded="false" aria-controls="speciesDropdown" placeholder="All species" autocomplete="off" />
+              <span id="speciesSummary" class="species-summary">All species</span>
+              <div id="speciesDropdown" class="species-dropdown" hidden></div>
+            </div>
           </div>
-        </div>
-        <label>Metric
-          <select id="metricSelect">
-            ${Object.entries(metricLabels).map(([key, label]) => `<option value="${key}">${label}</option>`).join("")}
-          </select>
-        </label>
-        <label>Area
-          <select id="areaModeSelect">
-            <option value="regions">Broad regions</option>
-            <option value="detailed">Detailed coded fishing areas</option>
-          </select>
-        </label>
-        <fieldset id="regionFilterWrap" class="multi-filter">
-          <legend>Broad regions</legend>
-          ${data.metadata.regions.map((region) => `
-            <label class="check-option">
-              <input type="checkbox" name="regionFilter" value="${escapeHtml(region)}" />
-              <span>${escapeHtml(region)}</span>
-            </label>
-          `).join("")}
-        </fieldset>
-        <fieldset id="detailedAreaWrap" class="multi-filter">
-          <legend>Detailed areas</legend>
-          <div class="area-check-grid">
-            ${areaOptions.map((area) => `
+          <label>Metric
+            <select id="metricSelect">
+              ${Object.entries(metricLabels).map(([key, label]) => `<option value="${key}">${label}</option>`).join("")}
+            </select>
+          </label>
+          <label>Area
+            <select id="areaModeSelect">
+              <option value="regions">Broad regions</option>
+              <option value="detailed">Detailed coded fishing areas</option>
+            </select>
+          </label>
+          <fieldset id="regionFilterWrap" class="multi-filter">
+            <legend>Broad regions</legend>
+            ${data.metadata.regions.map((region) => `
               <label class="check-option">
-                <input type="checkbox" name="areaFilter" value="${area.code}" />
-                <span>${area.code} - ${escapeHtml(area.name)}</span>
+                <input type="checkbox" name="regionFilter" value="${escapeHtml(region)}" />
+                <span>${escapeHtml(region)}</span>
               </label>
             `).join("")}
+          </fieldset>
+          <fieldset id="detailedAreaWrap" class="multi-filter">
+            <legend>Detailed areas</legend>
+            <div class="area-check-grid">
+              ${areaOptions.map((area) => `
+                <label class="check-option">
+                  <input type="checkbox" name="areaFilter" value="${area.code}" />
+                  <span>${area.code} - ${escapeHtml(area.name)}</span>
+                </label>
+              `).join("")}
+            </div>
+          </fieldset>
+          <div class="timeline-filter" aria-label="Year timeline filter">
+            <div class="timeline-heading">
+              <span>Year range</span>
+              <strong id="yearRangeLabel">${state.startYear}-${state.endYear}</strong>
+            </div>
+            <div class="timeline-track">
+              <input id="startYearRange" aria-label="Start year" type="range" min="${minYear}" max="${maxYear}" step="1" />
+              <input id="endYearRange" aria-label="End year" type="range" min="${minYear}" max="${maxYear}" step="1" />
+            </div>
+            <div class="timeline-scale" aria-hidden="true">
+              ${[1980, 1990, 2000, 2010, 2020, 2025].filter((year) => year >= minYear && year <= maxYear).map((year) => `<span>${year}</span>`).join("")}
+            </div>
           </div>
-        </fieldset>
-        <div class="timeline-filter" aria-label="Year timeline filter">
-          <div class="timeline-heading">
-            <span>Year range</span>
-            <strong id="yearRangeLabel">${state.startYear}-${state.endYear}</strong>
-          </div>
-          <div class="timeline-track">
-            <input id="startYearRange" aria-label="Start year" type="range" min="${minYear}" max="${maxYear}" step="1" />
-            <input id="endYearRange" aria-label="End year" type="range" min="${minYear}" max="${maxYear}" step="1" />
-          </div>
-          <div class="timeline-scale" aria-hidden="true">
-            ${[1980, 1990, 2000, 2010, 2020, 2025].filter((year) => year >= minYear && year <= maxYear).map((year) => `<span>${year}</span>`).join("")}
-          </div>
-        </div>
-        <button id="resetButton" type="button">Reset</button>
-      </section>
+          <button id="resetButton" type="button">Reset</button>
+        </section>
+      </details>
       <section id="warnings" class="warnings" aria-live="polite"></section>
       <section class="panel map-panel">
         <div class="section-heading">
@@ -146,26 +149,17 @@ function renderShell(): void {
           <p class="ecosystem-note">This section always evaluates Common Snook, Red Drum, Spotted Seatrout, and Gray Snapper, regardless of the global species filter.</p>
         </div>
         <div id="ecosystemPartialNote" class="ecosystem-partial-note" hidden></div>
-        <div class="ecosystem-grid">
-          <div class="ecosystem-visual">
-            <div class="section-heading compact-heading">
-              <h3>Current Condition Scorecard</h3>
-              <p id="scorecardSubtitle"></p>
-            </div>
-            <div id="conditionScorecard" class="scorecard-table" aria-live="polite"></div>
+        <div class="ecosystem-visual heatmap-visual">
+          <div class="section-heading compact-heading">
+            <h3>Species-by-Year Condition Heatmap</h3>
+            <p id="heatmapSubtitle"></p>
           </div>
-          <div class="ecosystem-visual">
-            <div class="section-heading compact-heading">
-              <h3>Species-by-Year Condition Heatmap</h3>
-              <p id="heatmapSubtitle"></p>
-            </div>
-            <div class="heatmap-scroll">
-              <div id="ecosystemHeatmap" class="ecosystem-heatmap" role="img" aria-label="Species by year condition heatmap"></div>
-            </div>
-            <div id="heatmapLegend" class="ecosystem-legend"></div>
-            <div id="heatmapDetail" class="heatmap-detail" aria-live="polite"></div>
-            <p class="ecosystem-caption">Each cell compares that species' annual catch rate with its own catch-rate history during the selected timeline; it does not compare CPUE magnitudes across different species.</p>
+          <div class="heatmap-scroll">
+            <div id="ecosystemHeatmap" class="ecosystem-heatmap" role="img" aria-label="Species by year condition heatmap"></div>
           </div>
+          <div id="heatmapLegend" class="ecosystem-legend"></div>
+          <div id="heatmapDetail" class="heatmap-detail" aria-live="polite"></div>
+          <p class="ecosystem-caption">Each cell compares that species' annual catch rate with its own catch-rate history during the selected timeline; it does not compare CPUE magnitudes across different species.</p>
         </div>
         <div class="ecosystem-visual anomaly-visual">
           <div class="section-heading">
@@ -210,14 +204,10 @@ function renderShell(): void {
           <div id="keptChart" class="chart compact-chart" role="img" aria-label="Kept and released chart"></div>
         </div>
       </section>
-      <section class="panel takeaways">
-        <h2>Quick takeaways</h2>
-        <ul id="takeaways"></ul>
-        <details>
-          <summary>Why am I seeing this?</summary>
-          <p>These statements are generated from the displayed records only. They compare selected years and areas, suppress unsupported data, and avoid causal or fish-population claims.</p>
-        </details>
-      </section>
+      <details class="help">
+        <summary>How to use this dashboard</summary>
+        <p>Pick one or more species, metric, area view, and year range. The charts, maps, cards, and ecosystem signals update together. Use Reset to return to ${data.metadata.date_coverage.default_start_year}-${data.metadata.date_coverage.default_end_year}, catch rate, all species, and all broad regions.</p>
+      </details>
       <details class="methodology">
         <summary>Methodology and source</summary>
         <div>
@@ -225,8 +215,6 @@ function renderShell(): void {
           <p><strong>Coverage:</strong> ${data.metadata.date_coverage.min_date} through ${data.metadata.date_coverage.max_date}. The default view is ${data.metadata.date_coverage.default_start_year}-${data.metadata.date_coverage.default_end_year}; 2025 is selectable but marked partial.</p>
           <p><strong>CPUE:</strong> ${data.metadata.cpue.formula}. Unit: ${data.metadata.cpue.unit}. ${data.metadata.cpue.limitation}</p>
           <p><strong>Coastal ecosystem signals:</strong> Common Snook, Red Drum, Spotted Seatrout, and Gray Snapper are fixed fishery-condition indicators. They use surveyed catch rate and reported catch as coastal fishery signals, not as a comprehensive ecosystem-health score or direct fish-population estimate.</p>
-          <p><strong>Scorecard method:</strong> Current condition compares the latest five complete years inside the selected timeline with rolling five-year aggregate CPUE windows from the selected history. Percentiles below 25 are Below Average, 25 through 75 are Near Average, and above 75 are Above Average. At least eight complete years and three valid rolling windows are required.</p>
-          <p><strong>Trend and confidence:</strong> Trend uses a simple linear fit to annual CPUE, normalized as slope times selected-year span divided by mean annual CPUE. More than +10% is Increasing, less than -10% is Decreasing, and the middle band is Stable. Data coverage confidence is High, Medium, or Low based on valid CPUE year coverage, valid recent years, partial years, interrupted coverage, trips, and effort.</p>
           <p><strong>Heatmap method:</strong> Each species-year cell ranks annual CPUE against that species' own selected-timeline distribution. Partial years, interrupted coverage, missing effort, and missing observations are marked as limited data even when a CPUE value can still be displayed.</p>
           <p><strong>Anomaly map method:</strong> The map compares recent five-year CPUE with the selected historical baseline before that window. For the default timeline, the recent window is 2020-2024 and the baseline is 2005-2019. Species anomalies use ((recent CPUE - baseline CPUE) / baseline CPUE) * 100 and require at least three valid recent years and three valid baseline years. Zero or missing baselines are not converted to infinite percentages.</p>
           <p><strong>Indicator composite:</strong> The composite is the arithmetic mean of valid species-level anomaly percentages with equal weight per species and at least two contributing species. It does not combine raw fish counts across species.</p>
@@ -431,7 +419,6 @@ function update(): void {
   renderEffortChart(document.querySelector("#effortChart") as HTMLElement, records);
   renderKeptReleasedChart(document.querySelector("#keptChart") as HTMLElement, records);
   document.querySelector("#trendSummary")!.textContent = summarizeChart(records, state.metric);
-  renderTakeaways(records);
   renderMap();
   renderEcosystemSignals();
   fisheriesMap?.invalidate();
@@ -440,17 +427,14 @@ function update(): void {
 
 function renderEcosystemSignals(): void {
   const scope = ecosystemScope();
-  const scorecard = buildScorecard(data, scope, state.startYear, state.endYear);
   const heatmapCells = buildHeatmapCells(data, scope, state.startYear, state.endYear);
   const anomaly = buildAnomalyAreas(data, scope, state.startYear, state.endYear, ecosystemIndicator);
-  const recentWindow = scorecard[0]?.recentWindow ?? anomaly.window;
+  const recentWindow = latestFiveCompleteYears(data.coverage.years, state.startYear, state.endYear);
   const partialNote = document.querySelector<HTMLElement>("#ecosystemPartialNote")!;
   partialNote.hidden = !recentWindow.excludedPartialEndYear;
   partialNote.textContent = recentWindow.excludedPartialEndYear ? `Partial ${state.endYear} is selectable in the dashboard but is excluded from recent five-year ecosystem calculations; the latest complete comparison year is ${recentWindow.recentEnd}.` : "";
-  document.querySelector("#scorecardSubtitle")!.textContent = `Latest 5-year period (${recentWindow.recentStart}-${recentWindow.recentEnd}) compared with selected history (${state.startYear}-${state.endYear})`;
   document.querySelector("#heatmapSubtitle")!.textContent = `Annual CPUE relative to each species' distribution during ${state.startYear}-${state.endYear}`;
   document.querySelector("#anomalySubtitle")!.textContent = `Five-year CPUE anomaly: ${anomaly.window.recentStart}-${anomaly.window.recentEnd} compared with the ${anomaly.window.baselineStart}-${anomaly.window.baselineEnd} baseline`;
-  renderScorecard(scorecard);
   renderHeatmap(heatmapCells);
   renderAnomalyMap(anomaly.areas, anomaly.window, anomaly.emptyReason);
 }
@@ -464,47 +448,6 @@ function ecosystemScope(): EcosystemScope {
   };
 }
 
-function renderScorecard(rows: ScorecardRow[]): void {
-  document.querySelector("#conditionScorecard")!.innerHTML = `
-    <div class="scorecard-header" role="row">
-      <span>Indicator species</span>
-      <span>Current condition versus selected history</span>
-      <span>Selected-period trend</span>
-      <span>Data confidence</span>
-    </div>
-    ${rows.map((row) => scorecardRowHtml(row)).join("")}
-  `;
-}
-
-function scorecardRowHtml(row: ScorecardRow): string {
-  const percentile = row.percentile === null ? "percentile unavailable" : `${row.percentile.toFixed(1)}th percentile`;
-  const normalizedTrend = row.normalizedTrend === null ? "" : ` (${formatPercent(row.normalizedTrend * 100)})`;
-  return `
-    <article class="scorecard-row">
-      <div class="species-cell">
-        <span class="species-icon" aria-hidden="true">${escapeHtml(row.species.initials)}</span>
-        <span><strong>${escapeHtml(row.species.commonName)}</strong><small>${escapeHtml(row.species.scientificName)}</small></span>
-      </div>
-      <div>
-        <strong class="condition-pill ${conditionClass(row.condition)}">${row.condition}</strong>
-        <span>${percentile}</span>
-        <small>Recent CPUE: ${formatCpue(row.currentCpue)}; catch ${row.currentCatch.toLocaleString()}, effort ${formatEffort(row.currentEffort)}</small>
-      </div>
-      <div>
-        ${sparklineSvg(row)}
-        <strong>${row.trend}${normalizedTrend}</strong>
-        <small>Trend, ${state.startYear}-${state.endYear}</small>
-      </div>
-      <div>
-        <span class="confidence confidence-${row.confidence.toLowerCase()}" title="${escapeHtml(row.confidenceReason)}" aria-label="${row.confidence} data coverage confidence. ${escapeHtml(row.confidenceReason)}">
-          ${confidenceDots(row.confidence)} <strong>${row.confidence}</strong>
-        </span>
-        <small>${row.validYears}/${row.eligibleYears} valid years; ${row.recentValidYears}/${row.recentWindow.years.length} recent</small>
-      </div>
-    </article>
-  `;
-}
-
 function renderHeatmap(cells: HeatmapCell[]): void {
   const selectedCell = selectedHeatmapCellKey ? cells.find((cell) => heatmapCellKey(cell.species.id, cell.year) === selectedHeatmapCellKey) : null;
   if (selectedHeatmapCellKey && !selectedCell) selectedHeatmapCellKey = null;
@@ -514,12 +457,12 @@ function renderHeatmap(cells: HeatmapCell[]): void {
   });
   document.querySelector("#heatmapLegend")!.innerHTML = [
     ["Limited or missing data", "#334155", "striped"],
-    ["Below 10th", "#b85c38", ""],
-    ["10th-25th", "#dd9b63", ""],
-    ["25th-50th", "#c8c7b0", ""],
-    ["50th-75th", "#7bb6ba", ""],
-    ["75th-90th", "#2d8ca8", ""],
-    ["Above 90th", "#126782", ""]
+    ["Below 10th", "#b91c1c", ""],
+    ["10th-25th", "#f97316", ""],
+    ["25th-50th", "#facc15", ""],
+    ["50th-75th", "#bef264", ""],
+    ["75th-90th", "#4ade80", ""],
+    ["Above 90th", "#15803d", ""]
   ]
     .map(([label, color, extra]) => `<span><i class="${extra}" style="background:${color}"></i>${label}</span>`)
     .join("");
@@ -583,55 +526,15 @@ function renderAnomalyTable(areas: AnomalyArea[], emptyReason: string | null): v
     )
     .join("");
   document.querySelector("#anomalyTable")!.innerHTML = `
-    <table>
-      <caption>Anomaly values by fishing area for ${escapeHtml(indicatorLabel(ecosystemIndicator))}</caption>
-      <thead><tr><th>Area</th><th>Broad region</th><th>Recent CPUE</th><th>Baseline CPUE</th><th>Anomaly</th><th>Category</th><th>Valid species</th><th>Coverage/confidence</th></tr></thead>
-      <tbody>${rows || '<tr><td colspan="8">No mapped areas match the active selection.</td></tr>'}</tbody>
-    </table>
+    <details class="table-disclosure">
+      <summary>Show anomaly values table</summary>
+      <table>
+        <caption>Anomaly values by fishing area for ${escapeHtml(indicatorLabel(ecosystemIndicator))}</caption>
+        <thead><tr><th>Area</th><th>Broad region</th><th>Recent CPUE</th><th>Baseline CPUE</th><th>Anomaly</th><th>Category</th><th>Valid species</th><th>Coverage/confidence</th></tr></thead>
+        <tbody>${rows || '<tr><td colspan="8">No mapped areas match the active selection.</td></tr>'}</tbody>
+      </table>
+    </details>
   `;
-}
-
-function sparklineSvg(row: ScorecardRow): string {
-  const valid = row.annual.filter((item): item is typeof item & { cpue: number } => item.cpue !== null);
-  if (valid.length < 2) return '<span class="sparkline-empty">No sparkline</span>';
-  const width = 128;
-  const height = 38;
-  const minYear = Math.min(...valid.map((item) => item.year));
-  const maxYear = Math.max(...valid.map((item) => item.year));
-  const minValue = Math.min(...valid.map((item) => item.cpue));
-  const maxValue = Math.max(...valid.map((item) => item.cpue));
-  const x = (year: number) => (maxYear === minYear ? width / 2 : ((year - minYear) / (maxYear - minYear)) * width);
-  const y = (value: number) => (maxValue === minValue ? height / 2 : height - ((value - minValue) / (maxValue - minValue)) * height);
-  const points = valid.map((item) => `${x(item.year).toFixed(1)},${y(item.cpue).toFixed(1)}`).join(" ");
-  const trend = fittedSparkline(valid);
-  const trendLine = trend
-    ? `<line x1="${x(minYear).toFixed(1)}" y1="${y(trend.start).toFixed(1)}" x2="${x(maxYear).toFixed(1)}" y2="${y(trend.end).toFixed(1)}" class="sparkline-trend" />`
-    : "";
-  return `<svg class="sparkline" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(row.species.commonName)} annual CPUE sparkline for ${state.startYear}-${state.endYear}; trend ${row.trend}">
-    <polyline points="${points}" />
-    ${trendLine}
-  </svg>`;
-}
-
-function fittedSparkline(points: Array<{ year: number; cpue: number }>): { start: number; end: number } | null {
-  const meanYear = points.reduce((sum, point) => sum + point.year, 0) / points.length;
-  const meanValue = points.reduce((sum, point) => sum + point.cpue, 0) / points.length;
-  const denominator = points.reduce((sum, point) => sum + (point.year - meanYear) ** 2, 0);
-  if (denominator === 0) return null;
-  const slope = points.reduce((sum, point) => sum + (point.year - meanYear) * (point.cpue - meanValue), 0) / denominator;
-  const intercept = meanValue - slope * meanYear;
-  const first = Math.min(...points.map((point) => point.year));
-  const last = Math.max(...points.map((point) => point.year));
-  return { start: slope * first + intercept, end: slope * last + intercept };
-}
-
-function conditionClass(condition: string): string {
-  return condition.toLowerCase().replaceAll(" ", "-");
-}
-
-function confidenceDots(confidence: string): string {
-  const active = confidence === "High" ? 3 : confidence === "Medium" ? 2 : 1;
-  return `<span class="confidence-dots" aria-hidden="true">${[1, 2, 3].map((dot) => `<i class="${dot <= active ? "active" : ""}"></i>`).join("")}</span>`;
 }
 
 function formatCpue(value: number | null): string {
@@ -688,11 +591,6 @@ function renderCards(records: DisplayRecord[]): void {
     .join("");
 }
 
-function renderTakeaways(records: DisplayRecord[]): void {
-  const takeaways = buildTakeaways(records, state.metric, state.startYear, state.endYear);
-  document.querySelector("#takeaways")!.innerHTML = takeaways.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
-}
-
 function renderMap(): void {
   const latestYear = latestCompleteYear(data, state.endYear);
   const mapRecords = mapRecordsForLatestYear(latestYear);
@@ -704,11 +602,14 @@ function renderMap(): void {
     )
     .join("");
   document.querySelector("#mapTable")!.innerHTML = `
-    <table>
-      <caption>Mapped area values for ${latestYear}</caption>
-      <thead><tr><th>Area</th><th>${metricLabels[state.metric]}</th><th>Catch</th><th>Effort</th><th>Coverage</th></tr></thead>
-      <tbody>${rows || '<tr><td colspan="5">No mapped areas match the active selection.</td></tr>'}</tbody>
-    </table>
+    <details class="table-disclosure">
+      <summary>Show mapped area values table</summary>
+      <table>
+        <caption>Mapped area values for ${latestYear}</caption>
+        <thead><tr><th>Area</th><th>${metricLabels[state.metric]}</th><th>Catch</th><th>Effort</th><th>Coverage</th></tr></thead>
+        <tbody>${rows || '<tr><td colspan="5">No mapped areas match the active selection.</td></tr>'}</tbody>
+      </table>
+    </details>
   `;
 }
 
