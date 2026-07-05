@@ -53,10 +53,7 @@ function renderShell(): void {
   app.innerHTML = `
     <header class="site-header">
       <div class="header-brand">
-        <div class="nps-data-badge" aria-label="National Park Service public data badge">
-          <strong>NPS</strong>
-          <span>DATA</span>
-        </div>
+        <img class="nps-logo" src="${import.meta.env.BASE_URL}images/nps-logo.jpg" alt="National Park Service logo" />
         <div>
           <p class="eyebrow">National Park Service public data</p>
           <h1>Everglades Fisheries Explorer</h1>

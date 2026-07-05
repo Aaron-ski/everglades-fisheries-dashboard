@@ -87,33 +87,13 @@ a:focus-visible {
   gap: 18px;
 }
 
-.nps-data-badge {
-  display: grid;
-  place-items: center;
+.nps-logo {
+  display: block;
   flex: 0 0 auto;
-  width: 74px;
-  min-height: 86px;
-  padding: 10px 8px;
-  border: 2px solid #c9a45b;
-  border-radius: 6px 6px 18px 18px;
-  background: linear-gradient(180deg, #174b2f, #0e2b1d);
-  color: #f8fbf8;
+  width: 86px;
+  height: auto;
+  border-radius: 4px;
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.34);
-  text-align: center;
-}
-
-.nps-data-badge strong {
-  font-size: 1.45rem;
-  letter-spacing: 0.04em;
-  line-height: 1;
-}
-
-.nps-data-badge span {
-  margin-top: 5px;
-  color: #f2c365;
-  font-size: 0.78rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
 }
 
 .eyebrow {
@@ -700,7 +680,7 @@ h3 {
 }
 
 .table-disclosure {
-  min-width: 720px;
+  min-width: 0;
 }
 
 .table-disclosure > summary {
@@ -718,6 +698,10 @@ h3 {
 .table-disclosure[open] > summary {
   background: #16483c;
   border-color: #2fbd96;
+}
+
+.table-disclosure table {
+  min-width: 720px;
 }
 
 table {
@@ -782,9 +766,8 @@ th {
     grid-template-columns: 1fr;
   }
 
-  .nps-data-badge {
-    width: 66px;
-    min-height: 74px;
+  .nps-logo {
+    width: 72px;
   }
 
   .compact-select {
