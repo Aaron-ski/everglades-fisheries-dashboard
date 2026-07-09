@@ -49,6 +49,17 @@ button:hover {
   background: #2fbd96;
 }
 
+.secondary-button {
+  background: #102c26;
+  border-color: #36524a;
+  color: #ffffff;
+}
+
+.secondary-button:hover {
+  background: #16483c;
+  border-color: #2fbd96;
+}
+
 button:focus-visible,
 select:focus-visible,
 input:focus-visible,
@@ -114,6 +125,58 @@ h1 {
 h2 {
   margin: 0 0 8px;
   font-size: 1.25rem;
+}
+
+.title-with-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.title-with-tooltip h2 {
+  margin: 0;
+}
+
+.info-tooltip {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin-left: 6px;
+  border: 1px solid #8bd9c3;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #111827;
+  font-size: 0.82rem;
+  font-weight: 900;
+  cursor: help;
+}
+
+.tooltip-bubble {
+  position: absolute;
+  z-index: 1300;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  display: none;
+  width: min(420px, calc(100vw - 48px));
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111827;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.36);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.45;
+  transform: translateX(-50%);
+}
+
+.info-tooltip:hover .tooltip-bubble,
+.info-tooltip:focus .tooltip-bubble,
+.info-tooltip:focus-within .tooltip-bubble {
+  display: block;
 }
 
 .subtitle {
@@ -494,6 +557,17 @@ h3 {
   margin-bottom: 10px;
 }
 
+.chart-heading-actions {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  min-width: min(480px, 50%);
+}
+
+.chart-expand-button {
+  min-height: 38px;
+}
+
 .ecosystem-section {
   display: grid;
   gap: 18px;
@@ -574,6 +648,17 @@ h3 {
   min-width: 250px;
 }
 
+.comparison-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.comparison-range {
+  grid-column: auto;
+  margin: 0;
+}
+
 .anomaly-visual {
   display: grid;
   gap: 12px;
@@ -600,6 +685,48 @@ h3 {
 
 .compact-chart {
   min-height: 380px;
+}
+
+.chart-modal[hidden] {
+  display: none;
+}
+
+.chart-modal {
+  position: fixed;
+  z-index: 2000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: clamp(12px, 3vw, 32px);
+}
+
+.chart-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 10, 8, 0.82);
+}
+
+.chart-modal__panel {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 12px;
+  width: min(1320px, 100%);
+  max-height: min(92vh, 920px);
+  padding: 18px;
+  overflow: auto;
+  border: 1px solid #36524a;
+  border-radius: 8px;
+  background: #0c1d19;
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.62);
+}
+
+.expanded-chart {
+  min-height: 720px;
+}
+
+.modal-open {
+  overflow: hidden;
 }
 
 .split {
@@ -762,7 +889,8 @@ th {
 
   .filters,
   .cards,
-  .split {
+  .split,
+  .comparison-controls {
     grid-template-columns: 1fr;
   }
 
@@ -780,6 +908,20 @@ th {
 
   .chart {
     min-height: 390px;
+  }
+
+  .chart-heading-actions {
+    justify-items: stretch;
+    min-width: 0;
+  }
+
+  .tooltip-bubble {
+    left: 0;
+    transform: translateX(-40px);
+  }
+
+  .expanded-chart {
+    min-height: 560px;
   }
 
   .map {

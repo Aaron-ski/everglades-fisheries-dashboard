@@ -113,14 +113,30 @@ export function buildAnomalyWindow(coverageYears: CoverageYear[], startYear: num
   };
 }
 
+export function buildAnomalyWindowFromRanges(coverageYears: CoverageYear[], baselineStart: number, baselineEnd: number, recentStart: number, recentEnd: number): BaselineWindow {
+  const years = coverageYears
+    .filter((row) => row.year >= recentStart && row.year <= recentEnd && !row.is_partial_year)
+    .map((row) => row.year)
+    .sort((a, b) => a - b);
+  return {
+    recentStart: years[0] ?? recentStart,
+    recentEnd: years.at(-1) ?? recentEnd,
+    years,
+    excludedPartialEndYear: coverageYears.some((row) => row.year >= recentStart && row.year <= recentEnd && row.is_partial_year),
+    baselineStart,
+    baselineEnd
+  };
+}
+
 export function buildAnomalyAreas(
   data: DashboardData,
   scope: EcosystemScope,
   startYear: number,
   endYear: number,
-  indicatorId: EcosystemIndicatorId
+  indicatorId: EcosystemIndicatorId,
+  customWindow?: BaselineWindow
 ): { window: BaselineWindow; areas: AnomalyArea[]; emptyReason: string | null } {
-  const window = buildAnomalyWindow(data.coverage.years, startYear, endYear);
+  const window = customWindow ?? buildAnomalyWindow(data.coverage.years, startYear, endYear);
   if (window.baselineEnd - window.baselineStart + 1 < ECOSYSTEM_THRESHOLDS.anomalyMinimumBaselineYears || window.years.length < ECOSYSTEM_THRESHOLDS.anomalyMinimumRecentYears) {
     return { window, areas: [], emptyReason: "Expand the timeline to include at least three baseline years and three recent years." };
   }

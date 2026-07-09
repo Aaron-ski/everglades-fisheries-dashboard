@@ -4,7 +4,7 @@ import { renderEffortChart, renderKeptReleasedChart, renderTrendChart, summarize
 import { detailedAreaOptions, latestCompleteYear, loadDashboardData, recordsForState } from "./data";
 import { renderEcosystemHeatmap, heatmapCellKey } from "./ecosystemCharts";
 import { EcosystemAnomalyMap, colorForAnomaly, indicatorLabel } from "./ecosystemMap";
-import { buildAnomalyAreas, buildHeatmapCells, latestFiveCompleteYears, mappedAreaCodesFromGeojson } from "./ecosystemSignals";
+import { buildAnomalyAreas, buildAnomalyWindowFromRanges, buildHeatmapCells, latestFiveCompleteYears, mappedAreaCodesFromGeojson } from "./ecosystemSignals";
 import {
   INDICATOR_COMPOSITE_ID,
   INDICATOR_SPECIES,
@@ -29,6 +29,14 @@ let fisheriesMap: FisheriesMap | null = null;
 let ecosystemAnomalyMap: EcosystemAnomalyMap | null = null;
 let ecosystemIndicator: EcosystemIndicatorId = INDICATOR_COMPOSITE_ID;
 let selectedHeatmapCellKey: string | null = null;
+let anomalyRanges: AnomalyRanges;
+
+interface AnomalyRanges {
+  baselineStart: number;
+  baselineEnd: number;
+  recentStart: number;
+  recentEnd: number;
+}
 
 void init();
 
@@ -37,6 +45,7 @@ async function init(): Promise<void> {
   try {
     data = await loadDashboardData();
     state = stateFromUrl(data.metadata, window.location.search);
+    anomalyRanges = defaultAnomalyRanges();
     renderShell();
     bindControls();
     update();
@@ -140,7 +149,13 @@ function renderShell(): void {
       <section class="panel ecosystem-section" aria-labelledby="ecosystemTitle">
         <div class="section-heading">
           <div>
-            <h2 id="ecosystemTitle">Coastal Ecosystem Signals</h2>
+            <div class="title-with-tooltip">
+              <h2 id="ecosystemTitle">Coastal Ecosystem Signals</h2>
+              <span class="info-tooltip" tabindex="0" aria-label="CPUE definition and interpretation">
+                <span aria-hidden="true">i</span>
+                <span class="tooltip-bubble" role="tooltip">CPUE means catch per unit effort: fish caught divided by angler-hours. It standardizes catch by fishing effort, so it can show whether anglers are catching more or fewer fish for the same amount of fishing time. Here it is a fishery-condition signal, not a direct population count or complete ecosystem-health score.</span>
+              </span>
+            </div>
             <p>These indicators use recreational catch rates to show changes in coastal fishery condition. They are not direct estimates of fish population size or overall ecosystem health.</p>
           </div>
           <p class="ecosystem-note">This section always evaluates Common Snook, Red Drum, Spotted Seatrout, and Gray Snapper, regardless of the global species filter.</p>
@@ -171,6 +186,34 @@ function renderShell(): void {
               </select>
             </label>
           </div>
+          <div class="comparison-controls" aria-label="Anomaly comparison period controls">
+            <div class="timeline-filter comparison-range">
+              <div class="timeline-heading">
+                <span>Baseline period</span>
+                <strong id="baselineRangeLabel"></strong>
+              </div>
+              <div class="timeline-track">
+                <input id="baselineStartRange" aria-label="Baseline start year" type="range" min="${minYear}" max="${maxYear}" step="1" />
+                <input id="baselineEndRange" aria-label="Baseline end year" type="range" min="${minYear}" max="${maxYear}" step="1" />
+              </div>
+              <div class="timeline-scale" aria-hidden="true">
+                ${[1980, 1990, 2000, 2010, 2020, 2025].filter((year) => year >= minYear && year <= maxYear).map((year) => `<span>${year}</span>`).join("")}
+              </div>
+            </div>
+            <div class="timeline-filter comparison-range">
+              <div class="timeline-heading">
+                <span>Comparison period</span>
+                <strong id="recentRangeLabel"></strong>
+              </div>
+              <div class="timeline-track">
+                <input id="recentStartRange" aria-label="Comparison start year" type="range" min="${minYear}" max="${maxYear}" step="1" />
+                <input id="recentEndRange" aria-label="Comparison end year" type="range" min="${minYear}" max="${maxYear}" step="1" />
+              </div>
+              <div class="timeline-scale" aria-hidden="true">
+                ${[1980, 1990, 2000, 2010, 2020, 2025].filter((year) => year >= minYear && year <= maxYear).map((year) => `<span>${year}</span>`).join("")}
+              </div>
+            </div>
+          </div>
           <div class="map-actions">
             <button id="showAllEcosystemAreasButton" type="button">Show all areas</button>
             <span id="anomalyLegend" class="legend anomaly-legend"></span>
@@ -182,16 +225,12 @@ function renderShell(): void {
         </div>
       </section>
       <section id="cards" class="cards" aria-label="Key metrics"></section>
-      <section class="panel">
-        <div class="section-heading">
-          <h2>Annual trend</h2>
-          <p id="trendSummary"></p>
-        </div>
-        <div id="trendChart" class="chart" role="img" aria-label="Annual trend chart"></div>
-      </section>
       <section class="split">
         <div class="panel">
-          <h2>Fishing effort</h2>
+          <div class="section-heading compact-heading">
+            <h2>Fishing effort</h2>
+            <button class="secondary-button chart-expand-button" type="button" data-chart-expand="effort">Expand chart</button>
+          </div>
           <p>Effort uses angler-hours from surveyed trips. Trailer counts are separate and are not part of CPUE.</p>
           <div id="effortChart" class="chart compact-chart" role="img" aria-label="Fishing effort chart"></div>
         </div>
@@ -200,6 +239,16 @@ function renderShell(): void {
           <p>Harvested and released counts are shown only where the source disposition field supports them.</p>
           <div id="keptChart" class="chart compact-chart" role="img" aria-label="Kept and released chart"></div>
         </div>
+      </section>
+      <section class="panel">
+        <div class="section-heading">
+          <h2>Annual trend</h2>
+          <div class="chart-heading-actions">
+            <p id="trendSummary"></p>
+            <button class="secondary-button chart-expand-button" type="button" data-chart-expand="trend">Expand chart</button>
+          </div>
+        </div>
+        <div id="trendChart" class="chart" role="img" aria-label="Annual trend chart"></div>
       </section>
       <details class="help">
         <summary>How to use this dashboard</summary>
@@ -224,6 +273,16 @@ function renderShell(): void {
           <p><a href="${data.metadata.source_page}" target="_blank" rel="noreferrer">NPS IRMA source</a> · <a href="${data.metadata.catalog_page}" target="_blank" rel="noreferrer">Data.gov catalog</a> · <a href="https://github.com/aaron-ski/everglades-fisheries-dashboard" target="_blank" rel="noreferrer">GitHub repository</a></p>
         </div>
       </details>
+      <div id="chartModal" class="chart-modal" hidden>
+        <div class="chart-modal__backdrop" data-modal-close></div>
+        <section class="chart-modal__panel" role="dialog" aria-modal="true" aria-labelledby="chartModalTitle">
+          <div class="section-heading">
+            <h2 id="chartModalTitle"></h2>
+            <button class="secondary-button" id="chartModalClose" type="button">Close</button>
+          </div>
+          <div id="expandedChart" class="chart expanded-chart" role="img"></div>
+        </section>
+      </div>
     </main>
   `;
 
@@ -303,6 +362,7 @@ function bindControls(): void {
   });
   document.querySelector<HTMLButtonElement>("#resetButton")!.addEventListener("click", () => {
     state = defaultState(data.metadata);
+    anomalyRanges = defaultAnomalyRanges();
     ecosystemIndicator = INDICATOR_COMPOSITE_ID;
     selectedHeatmapCellKey = null;
     update();
@@ -321,6 +381,34 @@ function bindControls(): void {
     state.selectedAreas = [];
     update();
   });
+  document.querySelector<HTMLInputElement>("#baselineStartRange")!.addEventListener("input", (event) => {
+    anomalyRanges.baselineStart = Number((event.target as HTMLInputElement).value);
+    normalizeAnomalyRanges("baselineStart");
+    update();
+  });
+  document.querySelector<HTMLInputElement>("#baselineEndRange")!.addEventListener("input", (event) => {
+    anomalyRanges.baselineEnd = Number((event.target as HTMLInputElement).value);
+    normalizeAnomalyRanges("baselineEnd");
+    update();
+  });
+  document.querySelector<HTMLInputElement>("#recentStartRange")!.addEventListener("input", (event) => {
+    anomalyRanges.recentStart = Number((event.target as HTMLInputElement).value);
+    normalizeAnomalyRanges("recentStart");
+    update();
+  });
+  document.querySelector<HTMLInputElement>("#recentEndRange")!.addEventListener("input", (event) => {
+    anomalyRanges.recentEnd = Number((event.target as HTMLInputElement).value);
+    normalizeAnomalyRanges("recentEnd");
+    update();
+  });
+  document.querySelectorAll<HTMLButtonElement>("[data-chart-expand]").forEach((button) => {
+    button.addEventListener("click", () => openChartModal(button.dataset.chartExpand === "effort" ? "effort" : "trend"));
+  });
+  document.querySelector<HTMLButtonElement>("#chartModalClose")!.addEventListener("click", closeChartModal);
+  document.querySelector<HTMLElement>("[data-modal-close]")!.addEventListener("click", closeChartModal);
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !document.querySelector<HTMLElement>("#chartModal")!.hidden) closeChartModal();
+  });
 }
 
 function syncControls(): void {
@@ -336,6 +424,12 @@ function syncControls(): void {
   document.querySelector<HTMLInputElement>("#startYearRange")!.value = String(state.startYear);
   document.querySelector<HTMLInputElement>("#endYearRange")!.value = String(state.endYear);
   document.querySelector("#yearRangeLabel")!.textContent = `${state.startYear}-${state.endYear}`;
+  document.querySelector<HTMLInputElement>("#baselineStartRange")!.value = String(anomalyRanges.baselineStart);
+  document.querySelector<HTMLInputElement>("#baselineEndRange")!.value = String(anomalyRanges.baselineEnd);
+  document.querySelector<HTMLInputElement>("#recentStartRange")!.value = String(anomalyRanges.recentStart);
+  document.querySelector<HTMLInputElement>("#recentEndRange")!.value = String(anomalyRanges.recentEnd);
+  document.querySelector("#baselineRangeLabel")!.textContent = `${anomalyRanges.baselineStart}-${anomalyRanges.baselineEnd}`;
+  document.querySelector("#recentRangeLabel")!.textContent = `${anomalyRanges.recentStart}-${anomalyRanges.recentEnd}`;
   document.querySelector<HTMLSelectElement>("#ecosystemIndicatorSelect")!.value = ecosystemIndicator;
   const regionWrap = document.querySelector<HTMLElement>("#regionFilterWrap")!;
   regionWrap.hidden = state.areaMode !== "regions";
@@ -405,6 +499,80 @@ function speciesSelectionLabel(): string {
   return `${state.selectedSpeciesIds.length} species selected`;
 }
 
+function defaultAnomalyRanges(): AnomalyRanges {
+  const recent = latestFiveCompleteYears(data.coverage.years, state.startYear, state.endYear);
+  const minYear = data.metadata.date_coverage.unique_years[0];
+  const recentStart = recent.recentStart;
+  const baselineEnd = Math.max(minYear, recentStart - 1);
+  return {
+    baselineStart: Math.min(Math.max(state.startYear, minYear), baselineEnd),
+    baselineEnd,
+    recentStart,
+    recentEnd: recent.recentEnd
+  };
+}
+
+function normalizeAnomalyRanges(changed: keyof AnomalyRanges): void {
+  const years = data.metadata.date_coverage.unique_years;
+  const minYear = years[0];
+  const maxYear = years.at(-1) ?? data.metadata.date_coverage.default_end_year;
+  anomalyRanges = {
+    baselineStart: clampYear(anomalyRanges.baselineStart, minYear, maxYear),
+    baselineEnd: clampYear(anomalyRanges.baselineEnd, minYear, maxYear),
+    recentStart: clampYear(anomalyRanges.recentStart, minYear, maxYear),
+    recentEnd: clampYear(anomalyRanges.recentEnd, minYear, maxYear)
+  };
+  if (anomalyRanges.baselineStart > anomalyRanges.baselineEnd) {
+    if (changed === "baselineStart") anomalyRanges.baselineEnd = anomalyRanges.baselineStart;
+    else anomalyRanges.baselineStart = anomalyRanges.baselineEnd;
+  }
+  if (anomalyRanges.recentStart > anomalyRanges.recentEnd) {
+    if (changed === "recentStart") anomalyRanges.recentEnd = anomalyRanges.recentStart;
+    else anomalyRanges.recentStart = anomalyRanges.recentEnd;
+  }
+  if (anomalyRanges.baselineEnd >= anomalyRanges.recentStart) {
+    if (changed === "baselineStart" || changed === "baselineEnd") {
+      anomalyRanges.recentStart = Math.min(maxYear, anomalyRanges.baselineEnd + 1);
+      if (anomalyRanges.recentEnd < anomalyRanges.recentStart) anomalyRanges.recentEnd = anomalyRanges.recentStart;
+    } else {
+      anomalyRanges.baselineEnd = Math.max(minYear, anomalyRanges.recentStart - 1);
+      if (anomalyRanges.baselineStart > anomalyRanges.baselineEnd) anomalyRanges.baselineStart = anomalyRanges.baselineEnd;
+    }
+  }
+}
+
+function clampYear(year: number, minYear: number, maxYear: number): number {
+  return Math.min(maxYear, Math.max(minYear, year));
+}
+
+function openChartModal(chart: "trend" | "effort"): void {
+  const modal = document.querySelector<HTMLElement>("#chartModal")!;
+  const title = document.querySelector<HTMLElement>("#chartModalTitle")!;
+  const previousChartElement = document.querySelector<HTMLElement>("#expandedChart")!;
+  const chartElement = previousChartElement.cloneNode(false) as HTMLElement;
+  previousChartElement.replaceWith(chartElement);
+  const records = selectedPeriod(recordsForState(data, state), state.startYear, state.endYear);
+  title.textContent = chart === "trend" ? "Annual trend" : "Fishing effort";
+  chartElement.setAttribute("aria-label", chart === "trend" ? "Expanded annual trend chart" : "Expanded fishing effort chart");
+  modal.hidden = false;
+  document.body.classList.add("modal-open");
+  if (chart === "trend") {
+    renderTrendChart(chartElement, records, state.metric);
+  } else {
+    renderEffortChart(chartElement, records);
+  }
+  document.querySelector<HTMLButtonElement>("#chartModalClose")!.focus();
+}
+
+function closeChartModal(): void {
+  const modal = document.querySelector<HTMLElement>("#chartModal")!;
+  const previousChartElement = document.querySelector<HTMLElement>("#expandedChart")!;
+  const chartElement = previousChartElement.cloneNode(false) as HTMLElement;
+  previousChartElement.replaceWith(chartElement);
+  modal.hidden = true;
+  document.body.classList.remove("modal-open");
+}
+
 function update(): void {
   syncControls();
   history.replaceState(null, "", `${location.pathname}?${toQuery(state)}`);
@@ -425,13 +593,13 @@ function update(): void {
 function renderEcosystemSignals(): void {
   const scope = ecosystemScope();
   const heatmapCells = buildHeatmapCells(data, scope, state.startYear, state.endYear);
-  const anomaly = buildAnomalyAreas(data, scope, state.startYear, state.endYear, ecosystemIndicator);
-  const recentWindow = latestFiveCompleteYears(data.coverage.years, state.startYear, state.endYear);
+  const anomalyWindow = buildAnomalyWindowFromRanges(data.coverage.years, anomalyRanges.baselineStart, anomalyRanges.baselineEnd, anomalyRanges.recentStart, anomalyRanges.recentEnd);
+  const anomaly = buildAnomalyAreas(data, scope, state.startYear, state.endYear, ecosystemIndicator, anomalyWindow);
   const partialNote = document.querySelector<HTMLElement>("#ecosystemPartialNote")!;
-  partialNote.hidden = !recentWindow.excludedPartialEndYear;
-  partialNote.textContent = recentWindow.excludedPartialEndYear ? `Partial ${state.endYear} is selectable in the dashboard but is excluded from recent five-year ecosystem calculations; the latest complete comparison year is ${recentWindow.recentEnd}.` : "";
+  partialNote.hidden = !anomaly.window.excludedPartialEndYear;
+  partialNote.textContent = anomaly.window.excludedPartialEndYear ? `Partial years in the comparison period are excluded from anomaly calculations; the latest complete comparison year is ${anomaly.window.recentEnd}.` : "";
   document.querySelector("#heatmapSubtitle")!.textContent = `Annual CPUE relative to each species' distribution during ${state.startYear}-${state.endYear}`;
-  document.querySelector("#anomalySubtitle")!.textContent = `Five-year CPUE anomaly: ${anomaly.window.recentStart}-${anomaly.window.recentEnd} compared with the ${anomaly.window.baselineStart}-${anomaly.window.baselineEnd} baseline`;
+  document.querySelector("#anomalySubtitle")!.textContent = `CPUE anomaly: ${anomaly.window.recentStart}-${anomaly.window.recentEnd} compared with the ${anomaly.window.baselineStart}-${anomaly.window.baselineEnd} baseline`;
   renderHeatmap(heatmapCells);
   renderAnomalyMap(anomaly.areas, anomaly.window, anomaly.emptyReason);
 }

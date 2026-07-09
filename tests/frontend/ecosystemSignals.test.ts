@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildAnomalyAreas,
   buildAnomalyWindow,
+  buildAnomalyWindowFromRanges,
   buildHeatmapCells,
   buildScorecard,
   conditionCategory,
@@ -106,6 +107,18 @@ describe("ecosystem signal calculations", () => {
       baselineStart: 2005,
       baselineEnd: 2019
     });
+  });
+
+  it("builds user-selected anomaly comparison windows", () => {
+    const window = buildAnomalyWindowFromRanges(mockData().coverage.years, 2010, 2014, 2020, 2025);
+    expect(window).toMatchObject({
+      recentStart: 2020,
+      recentEnd: 2024,
+      baselineStart: 2010,
+      baselineEnd: 2014,
+      excludedPartialEndYear: true
+    });
+    expect(window.years).toEqual([2020, 2021, 2022, 2023, 2024]);
   });
 
   it("calculates rolling five-year CPUE windows and percentile ties", () => {
