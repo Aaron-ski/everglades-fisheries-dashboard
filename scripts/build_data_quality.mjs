@@ -123,7 +123,7 @@ const evidenceStatus = statusFromEvidence({
 });
 
 const summary = {
-  generatedAt: new Date().toISOString(),
+  generatedAt: metadata.processed_at ?? sourceLastRetrievedAt ?? new Date().toISOString(),
   freshnessThresholdDays: {
     warning: FRESHNESS_WARNING_DAYS,
     stale: FRESHNESS_STALE_DAYS

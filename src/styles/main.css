@@ -10,6 +10,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   min-width: 320px;
@@ -104,6 +108,7 @@ a:focus-visible {
   width: 86px;
   height: auto;
   border-radius: 4px;
+  background: #061210;
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.34);
 }
 

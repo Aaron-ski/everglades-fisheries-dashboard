@@ -70,7 +70,6 @@ function renderShell(): void {
         <div>
           <p class="eyebrow">National Park Service public data</p>
           <h1>Everglades Fisheries Explorer</h1>
-          <p class="subtitle">Twenty years of recreational fishing trends in Everglades National Park</p>
         </div>
       </div>
       <div class="header-meta">
