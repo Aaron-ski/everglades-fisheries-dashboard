@@ -153,6 +153,24 @@ function renderShell(): void {
         <div id="map" class="map" aria-label="Interactive map of Everglades fishing areas"></div>
         <div id="mapTable" class="map-table"></div>
       </section>
+      <section class="split dashboard-only">
+        <div class="panel">
+          <div class="section-heading compact-heading">
+            <h2>Fishing effort</h2>
+            <button class="secondary-button chart-expand-button" type="button" data-chart-expand="effort">Expand chart</button>
+          </div>
+          <p>Effort uses angler-hours from surveyed trips. Trailer counts are separate and are not part of CPUE.</p>
+          <div id="effortChart" class="chart compact-chart" role="img" aria-label="Fishing effort chart"></div>
+        </div>
+        <div class="panel">
+          <div class="section-heading compact-heading">
+            <h2>Kept versus released</h2>
+            <button class="secondary-button chart-expand-button" type="button" data-chart-expand="kept">Expand chart</button>
+          </div>
+          <p>Harvested and released counts are shown only where the source disposition field supports them.</p>
+          <div id="keptChart" class="chart compact-chart" role="img" aria-label="Kept and released chart"></div>
+        </div>
+      </section>
       <section class="panel ecosystem-section dashboard-only" aria-labelledby="ecosystemTitle">
         <div class="section-heading">
           <div>
@@ -232,21 +250,6 @@ function renderShell(): void {
         </div>
       </section>
       <section id="cards" class="cards dashboard-only" aria-label="Key metrics"></section>
-      <section class="split dashboard-only">
-        <div class="panel">
-          <div class="section-heading compact-heading">
-            <h2>Fishing effort</h2>
-            <button class="secondary-button chart-expand-button" type="button" data-chart-expand="effort">Expand chart</button>
-          </div>
-          <p>Effort uses angler-hours from surveyed trips. Trailer counts are separate and are not part of CPUE.</p>
-          <div id="effortChart" class="chart compact-chart" role="img" aria-label="Fishing effort chart"></div>
-        </div>
-        <div class="panel">
-          <h2>Kept versus released</h2>
-          <p>Harvested and released counts are shown only where the source disposition field supports them.</p>
-          <div id="keptChart" class="chart compact-chart" role="img" aria-label="Kept and released chart"></div>
-        </div>
-      </section>
       <section class="panel dashboard-only">
         <div class="section-heading">
           <h2>Annual trend</h2>
@@ -418,7 +421,10 @@ function bindControls(): void {
     update();
   });
   document.querySelectorAll<HTMLButtonElement>("[data-chart-expand]").forEach((button) => {
-    button.addEventListener("click", () => openChartModal(button.dataset.chartExpand === "effort" ? "effort" : "trend"));
+    button.addEventListener("click", () => {
+      const chart = button.dataset.chartExpand;
+      if (chart === "effort" || chart === "kept" || chart === "trend") openChartModal(chart);
+    });
   });
   document.querySelector<HTMLButtonElement>("#chartModalClose")!.addEventListener("click", closeChartModal);
   document.querySelector<HTMLElement>("[data-modal-close]")!.addEventListener("click", closeChartModal);
@@ -802,21 +808,28 @@ function clampYear(year: number, minYear: number, maxYear: number): number {
   return Math.min(maxYear, Math.max(minYear, year));
 }
 
-function openChartModal(chart: "trend" | "effort"): void {
+function openChartModal(chart: "trend" | "effort" | "kept"): void {
   const modal = document.querySelector<HTMLElement>("#chartModal")!;
   const title = document.querySelector<HTMLElement>("#chartModalTitle")!;
   const previousChartElement = document.querySelector<HTMLElement>("#expandedChart")!;
   const chartElement = previousChartElement.cloneNode(false) as HTMLElement;
   previousChartElement.replaceWith(chartElement);
   const records = selectedPeriod(recordsForState(data, state), state.startYear, state.endYear);
-  title.textContent = chart === "trend" ? "Annual trend" : "Fishing effort";
-  chartElement.setAttribute("aria-label", chart === "trend" ? "Expanded annual trend chart" : "Expanded fishing effort chart");
+  const chartLabels = {
+    trend: { title: "Annual trend", aria: "Expanded annual trend chart" },
+    effort: { title: "Fishing effort", aria: "Expanded fishing effort chart" },
+    kept: { title: "Kept versus released", aria: "Expanded kept and released chart" }
+  };
+  title.textContent = chartLabels[chart].title;
+  chartElement.setAttribute("aria-label", chartLabels[chart].aria);
   modal.hidden = false;
   document.body.classList.add("modal-open");
   if (chart === "trend") {
     renderTrendChart(chartElement, records, state.metric);
-  } else {
+  } else if (chart === "effort") {
     renderEffortChart(chartElement, records);
+  } else {
+    renderKeptReleasedChart(chartElement, records);
   }
   document.querySelector<HTMLButtonElement>("#chartModalClose")!.focus();
 }
@@ -1003,14 +1016,23 @@ function renderCards(records: DisplayRecord[]): void {
   const releaseRate = kept + released > 0 ? released / (kept + released) : null;
   const trips = records.reduce((sum, record) => sum + record.surveyedTrips, 0);
   const cards = [
-    { label: `Latest complete-year ${metricLabels[state.metric].toLowerCase()}`, value: formatValue(latestMetric, state.metric, true), unit: metricUnits[state.metric], context: `${latestYear}; ${change.text} since ${state.startYear}` },
-    { label: "Total reported catch", value: formatValue(totalCatch, "catch", true), unit: "fish", context: `${state.startYear}-${state.endYear}` },
-    { label: "Fishing effort", value: formatValue(totalEffort, "effort", true), unit: "angler-hours", context: "Deduplicated surveyed trips" },
-    { label: releaseRate === null ? "Surveyed trips" : "Release rate", value: releaseRate === null ? trips.toLocaleString() : formatValue(releaseRate, "release_rate"), unit: releaseRate === null ? "trips" : "%", context: releaseRate === null ? "Coverage count" : "Released / kept plus released" }
+    { label: `Latest complete-year ${metricLabels[state.metric].toLowerCase()}`, value: formatCardValue(latestMetric, state.metric), unit: metricUnits[state.metric], context: `${latestYear}; ${change.text} since ${state.startYear}` },
+    { label: "Total reported catch", value: formatCardValue(totalCatch, "catch"), unit: "fish", context: `${state.startYear}-${state.endYear}` },
+    { label: "Fishing effort", value: formatCardValue(totalEffort, "effort"), unit: "angler-hours", context: "Deduplicated surveyed trips" },
+    { label: releaseRate === null ? "Surveyed trips" : "Release rate", value: releaseRate === null ? trips.toLocaleString() : formatCardValue(releaseRate, "release_rate"), unit: releaseRate === null ? "trips" : "%", context: releaseRate === null ? "Coverage count" : "Released / kept plus released" }
   ];
   document.querySelector("#cards")!.innerHTML = cards
     .map((card) => `<article class="card"><span>${card.label}</span><strong>${card.value}</strong><small>${card.unit}</small><p>${card.context}</p></article>`)
     .join("");
+}
+
+function formatCardValue(value: number | null | undefined, metric: MetricKey): string {
+  if (value === null || value === undefined || Number.isNaN(value)) return "No data";
+  if (metric === "release_rate") return `${(value * 100).toFixed(3)}%`;
+  if (metric === "cpue") return value.toFixed(3);
+  if (Math.abs(value) >= 1_000_000) return `${(value / 1_000_000).toFixed(3)}M`;
+  if (Math.abs(value) >= 1_000) return `${(value / 1_000).toFixed(3)}K`;
+  return value.toFixed(3);
 }
 
 function renderMap(): void {
