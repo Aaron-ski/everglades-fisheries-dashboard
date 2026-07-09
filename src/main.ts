@@ -69,6 +69,7 @@ function renderShell(): void {
         <img class="nps-logo" src="${import.meta.env.BASE_URL}images/nps-logo.jpg" alt="National Park Service logo" />
         <div>
           <p class="eyebrow">National Park Service public data</p>
+          <p class="project-credit">Project created by Aaron Kalafarski for John Kalafarski</p>
           <h1>Everglades Fisheries Explorer</h1>
         </div>
       </div>
