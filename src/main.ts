@@ -17,7 +17,7 @@ import {
 import { FisheriesMap } from "./mapView";
 import { formatValue, metricLabels, metricUnits, percentChange, selectedPeriod } from "./metrics";
 import { defaultState, stateFromUrl, toQuery } from "./state";
-import type { DashboardData, DashboardState, DisplayRecord, MetricKey } from "./types";
+import type { DashboardData, DashboardState, DataQualityStatus, DataQualitySummary, DisplayRecord, MetricKey } from "./types";
 
 const appElement = document.querySelector<HTMLDivElement>("#app");
 if (!appElement) throw new Error("Missing #app");
@@ -30,6 +30,9 @@ let ecosystemAnomalyMap: EcosystemAnomalyMap | null = null;
 let ecosystemIndicator: EcosystemIndicatorId = INDICATOR_COMPOSITE_ID;
 let selectedHeatmapCellKey: string | null = null;
 let anomalyRanges: AnomalyRanges;
+let activeTab: ActiveTab = "dashboard";
+
+type ActiveTab = "dashboard" | "data-quality";
 
 interface AnomalyRanges {
   baselineStart: number;
@@ -45,6 +48,7 @@ async function init(): Promise<void> {
   try {
     data = await loadDashboardData();
     state = stateFromUrl(data.metadata, window.location.search);
+    activeTab = tabFromUrl(window.location.search);
     anomalyRanges = defaultAnomalyRanges();
     renderShell();
     bindControls();
@@ -74,8 +78,12 @@ function renderShell(): void {
         <a href="${data.metadata.source_page}" target="_blank" rel="noreferrer">Official source</a>
       </div>
     </header>
+    <nav class="tab-nav" aria-label="Dashboard sections">
+      <button class="tab-button" type="button" data-tab="dashboard">Dashboard</button>
+      <button class="tab-button" type="button" data-tab="data-quality">Data Quality</button>
+    </nav>
     <main id="main">
-      <details class="filters-panel">
+      <details class="filters-panel dashboard-only">
         <summary>Dashboard filters</summary>
         <section class="filters" aria-label="Dashboard filters">
           <div id="speciesPicker" class="filter-field species-picker">
@@ -133,8 +141,8 @@ function renderShell(): void {
           <button id="resetButton" type="button">Reset</button>
         </section>
       </details>
-      <section id="warnings" class="warnings" aria-live="polite"></section>
-      <section class="panel map-panel">
+      <section id="warnings" class="warnings dashboard-only" aria-live="polite"></section>
+      <section class="panel map-panel dashboard-only">
         <div class="section-heading">
           <h2>Fishing-area map</h2>
           <p>Fishing-area polygons represent where anglers reported fishing. Point markers are omitted because the source package does not provide authoritative coordinates.</p>
@@ -146,7 +154,7 @@ function renderShell(): void {
         <div id="map" class="map" aria-label="Interactive map of Everglades fishing areas"></div>
         <div id="mapTable" class="map-table"></div>
       </section>
-      <section class="panel ecosystem-section" aria-labelledby="ecosystemTitle">
+      <section class="panel ecosystem-section dashboard-only" aria-labelledby="ecosystemTitle">
         <div class="section-heading">
           <div>
             <div class="title-with-tooltip">
@@ -224,8 +232,8 @@ function renderShell(): void {
           <div id="anomalyTable" class="map-table"></div>
         </div>
       </section>
-      <section id="cards" class="cards" aria-label="Key metrics"></section>
-      <section class="split">
+      <section id="cards" class="cards dashboard-only" aria-label="Key metrics"></section>
+      <section class="split dashboard-only">
         <div class="panel">
           <div class="section-heading compact-heading">
             <h2>Fishing effort</h2>
@@ -240,7 +248,7 @@ function renderShell(): void {
           <div id="keptChart" class="chart compact-chart" role="img" aria-label="Kept and released chart"></div>
         </div>
       </section>
-      <section class="panel">
+      <section class="panel dashboard-only">
         <div class="section-heading">
           <h2>Annual trend</h2>
           <div class="chart-heading-actions">
@@ -250,11 +258,11 @@ function renderShell(): void {
         </div>
         <div id="trendChart" class="chart" role="img" aria-label="Annual trend chart"></div>
       </section>
-      <details class="help">
+      <details class="help dashboard-only">
         <summary>How to use this dashboard</summary>
         <p>Pick one or more species, metric, area view, and year range. The charts, maps, cards, and ecosystem signals update together. Use Reset to return to ${data.metadata.date_coverage.default_start_year}-${data.metadata.date_coverage.default_end_year}, catch rate, all species, and all broad regions.</p>
       </details>
-      <details class="methodology">
+      <details class="methodology dashboard-only">
         <summary>Methodology and source</summary>
         <div>
           <p><strong>Dataset:</strong> Recreational fishing catch and effort in Everglades National Park, 1980-2025, from the National Park Service IRMA data package.</p>
@@ -273,6 +281,9 @@ function renderShell(): void {
           <p><a href="${data.metadata.source_page}" target="_blank" rel="noreferrer">NPS IRMA source</a> · <a href="${data.metadata.catalog_page}" target="_blank" rel="noreferrer">Data.gov catalog</a> · <a href="https://github.com/aaron-ski/everglades-fisheries-dashboard" target="_blank" rel="noreferrer">GitHub repository</a></p>
         </div>
       </details>
+      <section id="dataQualityView" class="data-quality-view" aria-labelledby="dataQualityTitle">
+        ${renderDataQualityPanel(data.dataQuality)}
+      </section>
       <div id="chartModal" class="chart-modal" hidden>
         <div class="chart-modal__backdrop" data-modal-close></div>
         <section class="chart-modal__panel" role="dialog" aria-modal="true" aria-labelledby="chartModalTitle">
@@ -301,6 +312,12 @@ function renderShell(): void {
 }
 
 function bindControls(): void {
+  document.querySelectorAll<HTMLButtonElement>("[data-tab]").forEach((button) => {
+    button.addEventListener("click", () => {
+      activeTab = button.dataset.tab === "data-quality" ? "data-quality" : "dashboard";
+      update();
+    });
+  });
   const speciesPicker = document.querySelector<HTMLElement>("#speciesPicker")!;
   const speciesInput = document.querySelector<HTMLInputElement>("#speciesSearchInput")!;
   const speciesDropdown = document.querySelector<HTMLElement>("#speciesDropdown")!;
@@ -412,6 +429,7 @@ function bindControls(): void {
 }
 
 function syncControls(): void {
+  syncTabControls();
   syncSpeciesControl();
   document.querySelector<HTMLSelectElement>("#metricSelect")!.value = state.metric;
   document.querySelector<HTMLSelectElement>("#areaModeSelect")!.value = state.areaMode;
@@ -434,6 +452,28 @@ function syncControls(): void {
   const regionWrap = document.querySelector<HTMLElement>("#regionFilterWrap")!;
   regionWrap.hidden = state.areaMode !== "regions";
   document.querySelector<HTMLElement>("#detailedAreaWrap")!.hidden = state.areaMode !== "detailed";
+}
+
+function syncTabControls(): void {
+  document.querySelectorAll<HTMLButtonElement>("[data-tab]").forEach((button) => {
+    const selected = button.dataset.tab === activeTab;
+    button.classList.toggle("is-active", selected);
+    button.setAttribute("aria-current", selected ? "page" : "false");
+  });
+  document.querySelectorAll<HTMLElement>(".dashboard-only").forEach((element) => {
+    element.hidden = activeTab !== "dashboard";
+  });
+  document.querySelector<HTMLElement>("#dataQualityView")!.hidden = activeTab !== "data-quality";
+}
+
+function tabFromUrl(search: string): ActiveTab {
+  return new URLSearchParams(search).get("tab") === "data-quality" ? "data-quality" : "dashboard";
+}
+
+function dashboardQuery(): string {
+  const params = new URLSearchParams(toQuery(state));
+  if (activeTab === "data-quality") params.set("tab", "data-quality");
+  return params.toString();
 }
 
 function openSpeciesDropdown(): void {
@@ -497,6 +537,224 @@ function speciesSelectionLabel(): string {
     return selected?.display_name ?? "1 species selected";
   }
   return `${state.selectedSpeciesIds.length} species selected`;
+}
+
+function renderDataQualityPanel(summary: DataQualitySummary | null): string {
+  if (!summary) {
+    return `
+      <section class="panel data-quality-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Source & Data Quality</p>
+            <h2 id="dataQualityTitle">Data Quality & Source Verification</h2>
+          </div>
+          ${statusBadge("warning", "Warning")}
+        </div>
+        <p class="quality-lede">The dashboard data loaded, but the compact data-quality summary file is missing. Run <code>npm run build:data-quality</code> to regenerate <code>public/data/data_quality_summary.json</code>.</p>
+      </section>
+    `;
+  }
+  const status = currentDataQualityStatus(summary);
+  const official = summary.officialSource ?? {};
+  const coverage = summary.dateCoverage ?? {};
+  const freshness = summary.freshness ?? {};
+  const integrity = summary.sourceIntegrity ?? {};
+  const validation = summary.validationSummary ?? {};
+  const rows = summary.rowCounts ?? {};
+  const cpue = summary.cpueSpotChecks ?? {};
+  const files = integrity.files ?? [];
+  const checks = cpue.checks ?? [];
+  const statusMessages = [...(summary.overallStatus?.errors ?? []), ...(summary.overallStatus?.warnings ?? [])];
+  return `
+    <section class="panel data-quality-section">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Source & Data Quality</p>
+          <h2 id="dataQualityTitle">Data Quality & Source Verification</h2>
+          <p class="quality-lede">${escapeHtml(summary.overallStatus?.message ?? "Data quality evidence was generated from committed metadata and validation outputs.")}</p>
+        </div>
+        ${statusBadge(status.status, status.label)}
+      </div>
+      ${statusMessages.length ? `<div class="quality-alerts">${statusMessages.map((message) => `<p>${escapeHtml(message)}</p>`).join("")}</div>` : ""}
+      <div class="quality-card-grid">
+        ${dataQualityCard("Overall Data Status", `
+          <p>${escapeHtml(status.explanation)}</p>
+          <dl class="quality-facts">
+            <div><dt>Coverage</dt><dd>${formatYearRange(coverage.minYear, coverage.maxYear)}</dd></div>
+            <div><dt>Last processed</dt><dd>${formatDateTime(freshness.processedAt)}</dd></div>
+            <div><dt>Needs resync</dt><dd>${freshness.needsResync || status.status !== "healthy" ? "Review recommended" : "No"}</dd></div>
+          </dl>
+        `)}
+        ${dataQualityCard("Official Source", `
+          <p>${escapeHtml(official.explanation ?? "Dashboard data is derived from the official NPS/Data.gov source package.")}</p>
+          <dl class="quality-facts">
+            <div><dt>Source title</dt><dd>${escapeHtml(official.title ?? "NPS/Data.gov source package")}</dd></div>
+            <div><dt>Retrieved</dt><dd>${formatDateTime(official.retrievedAt)}</dd></div>
+            <div><dt>Files recorded</dt><dd>${formatInteger(official.sourceFileCount)}</dd></div>
+          </dl>
+          <p class="quality-links">${qualityLink(official.sourcePage, "NPS IRMA source")} ${qualityLink(official.catalogPage, "Data.gov catalog")}</p>
+        `)}
+        ${dataQualityCard("Date Coverage", `
+          <dl class="quality-facts">
+            <div><dt>Minimum event date</dt><dd>${formatPlainDate(coverage.minEventDate)}</dd></div>
+            <div><dt>Maximum event date</dt><dd>${formatPlainDate(coverage.maxEventDate)}</dd></div>
+            <div><dt>Available years</dt><dd>${formatYearRange(coverage.minYear, coverage.maxYear)} (${formatInteger(coverage.yearCount)} years)</dd></div>
+            <div><dt>Every year present</dt><dd>${coverage.everyYearPresent ? "Yes" : `Missing ${coverage.missingYears?.join(", ") || "unknown years"}`}</dd></div>
+          </dl>
+          <p>${escapeHtml(coverage.note ?? "Some species or area combinations may still be sparse in individual years.")}</p>
+          <p class="quality-muted">Partial years: ${formatYearList(coverage.partialYears)}. Interrupted coverage: ${formatYearList(coverage.interruptedYears)}.</p>
+        `)}
+        ${dataQualityCard("Freshness / Last Updated", `
+          <dl class="quality-facts">
+            <div><dt>Processed</dt><dd>${formatDateTime(freshness.processedAt)}${relativeAgeText(freshness.processedAt)}</dd></div>
+            <div><dt>Source retrieved</dt><dd>${formatDateTime(freshness.sourceLastRetrievedAt)}${relativeAgeText(freshness.sourceLastRetrievedAt)}</dd></div>
+            <div><dt>Freshness rule</dt><dd>Warning after ${summary.freshnessThresholdDays?.warning ?? 45} days; stale after ${summary.freshnessThresholdDays?.stale ?? 120} days.</dd></div>
+          </dl>
+          <p>${escapeHtml(freshness.explanation ?? "Freshness is computed from metadata timestamps at runtime.")}</p>
+        `)}
+        ${dataQualityCard("Source Integrity", `
+          <dl class="quality-facts">
+            <div><dt>Hashes recorded</dt><dd>${formatInteger(integrity.filesWithHashes)} of ${files.length}</dd></div>
+            <div><dt>File sizes recorded</dt><dd>${formatInteger(integrity.filesWithSizes)} of ${files.length}</dd></div>
+            <div><dt>Retrieval timestamps</dt><dd>${formatInteger(integrity.filesWithRetrievalTimestamps)} of ${files.length}</dd></div>
+          </dl>
+          <p>${escapeHtml(integrity.note ?? "Hashes are recorded from the latest source retrieval; this page does not re-download source files.")}</p>
+          ${files.length ? `<div class="quality-table-wrap"><table class="quality-table"><thead><tr><th>File</th><th>Size</th><th>SHA-256</th><th>Retrieved</th></tr></thead><tbody>${files
+            .map((file) => `<tr><td>${escapeHtml(file.filename ?? file.key ?? "Unknown file")}</td><td>${formatBytes(file.size)}</td><td>${file.sha256Recorded ? `hash recorded (${escapeHtml(file.sha256Short ?? "")})` : "missing"}</td><td>${formatDateTime(file.retrievedAt)}</td></tr>`)
+            .join("")}</tbody></table></div>` : ""}
+        `)}
+        ${dataQualityCard("Validation Summary", `
+          <dl class="quality-facts">
+            <div><dt>Status</dt><dd>${statusBadge(validation.status ?? "missing", statusText(validation.status ?? "missing"))}</dd></div>
+            <div><dt>Total checks</dt><dd>${formatInteger(validation.totalChecks)}</dd></div>
+            <div><dt>Passed</dt><dd>${formatInteger(validation.passedChecks)}</dd></div>
+            <div><dt>Failed</dt><dd>${formatInteger(validation.failedChecks)}</dd></div>
+          </dl>
+          <p class="quality-muted">Years checked: ${formatYearRangeFromList(validation.yearsChecked)}. Summary warnings: ${formatInteger(validation.warningCount)}. Summary errors: ${formatInteger(validation.errorCount)}.</p>
+        `)}
+        ${dataQualityCard("Row Count Reconciliation", `
+          <dl class="quality-facts">
+            <div><dt>Area annual records</dt><dd>${countPair(rows.processedAnnualAreaRecords)}</dd></div>
+            <div><dt>Region annual records</dt><dd>${countPair(rows.processedAnnualRegionRecords)}</dd></div>
+            <div><dt>Species</dt><dd>${countPair(rows.speciesCount)}</dd></div>
+            <div><dt>QA/QC flags represented</dt><dd>${formatInteger(rows.qualityFlaggedRecords)}</dd></div>
+            <div><dt>Catch records represented</dt><dd>${formatInteger(rows.catchRecordsRepresented)}</dd></div>
+            <div><dt>Raw records</dt><dd>${rows.rawRecords === null || rows.rawRecords === undefined ? "Not exposed in public build" : formatInteger(rows.rawRecords)}</dd></div>
+          </dl>
+          <p>${escapeHtml(rows.note ?? "Expected values are reported by the latest build summary.")}</p>
+          <p class="quality-muted">${escapeHtml(rows.rawRecordsNote ?? "")}</p>
+        `)}
+        ${dataQualityCard("CPUE Spot Checks", `
+          <p>${escapeHtml(cpue.method ?? "Spot checks recompute CPUE from available processed data.")}</p>
+          <p>${statusBadge(cpue.status ?? "missing", statusText(cpue.status ?? "missing"))} Raw interview rows in public build: ${cpue.rawDataAvailableInPublicBuild ? "yes" : "no"}</p>
+          ${checks.length ? `<div class="quality-table-wrap"><table class="quality-table"><thead><tr><th>Example</th><th>Catch</th><th>Effort</th><th>Processed</th><th>Recomputed</th><th>Status</th></tr></thead><tbody>${checks
+            .map((check) => `<tr><td>${escapeHtml(check.label ?? "Spot check")}</td><td>${formatInteger(check.catch)}</td><td>${formatNumber(check.effortDenominator)}</td><td>${formatCpueCheck(check.processedCpue)}</td><td>${formatCpueCheck(check.recomputedCpue)}</td><td>${statusBadge(check.status ?? "missing", statusText(check.status ?? "missing"))}</td></tr>`)
+            .join("")}</tbody></table></div>` : "<p>No CPUE spot checks were included in the summary.</p>"}
+        `)}
+      </div>
+      <section class="panel quality-limitations">
+        <h3>Known Limitations</h3>
+        <ul>${(summary.limitations ?? []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </section>
+    </section>
+  `;
+}
+
+function dataQualityCard(title: string, body: string): string {
+  return `<article class="quality-card"><h3>${escapeHtml(title)}</h3>${body}</article>`;
+}
+
+function currentDataQualityStatus(summary: DataQualitySummary): { status: DataQualityStatus; label: string; explanation: string } {
+  const processedAt = summary.freshness?.processedAt ?? null;
+  const warningDays = summary.freshnessThresholdDays?.warning ?? 45;
+  const staleDays = summary.freshnessThresholdDays?.stale ?? 120;
+  const processedAge = ageInDays(processedAt);
+  const summaryStatus = summary.overallStatus?.status ?? "missing";
+  if (summaryStatus === "error" || summaryStatus === "failed") return { status: "error", label: "Error", explanation: "One or more data-quality checks require attention." };
+  if (processedAge === null) return { status: "warning", label: "Warning", explanation: "The processed timestamp is missing or invalid, so freshness cannot be confirmed." };
+  if (processedAge > staleDays) return { status: "stale", label: "Stale", explanation: `The dashboard data was processed ${processedAge} days ago, which is beyond the stale threshold.` };
+  if (summaryStatus === "warning" || processedAge > warningDays) return { status: "warning", label: "Warning", explanation: `The dashboard data is ${processedAge} days old or has non-blocking warnings to review.` };
+  return { status: "healthy", label: "Healthy", explanation: `Source verified. Data covers the expected years and was processed ${processedAge} days ago.` };
+}
+
+function statusBadge(status: DataQualityStatus | string, label: string): string {
+  const normalized = status === "passed" ? "healthy" : status === "failed" ? "error" : status;
+  return `<span class="status-badge status-${escapeHtml(String(normalized))}">${escapeHtml(label)}</span>`;
+}
+
+function statusText(status: DataQualityStatus | string): string {
+  if (status === "passed") return "Passed";
+  if (status === "failed") return "Failed";
+  if (status === "healthy") return "Healthy";
+  if (status === "warning") return "Warning";
+  if (status === "stale") return "Stale";
+  if (status === "error") return "Error";
+  return "Missing";
+}
+
+function qualityLink(url: string | null | undefined, label: string): string {
+  return url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noreferrer">${escapeHtml(label)}</a>` : "";
+}
+
+function formatDateTime(value: string | null | undefined): string {
+  if (!value) return "Not recorded";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return escapeHtml(value);
+  return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+
+function formatPlainDate(value: string | null | undefined): string {
+  return value ? escapeHtml(value) : "Not recorded";
+}
+
+function relativeAgeText(value: string | null | undefined): string {
+  const age = ageInDays(value);
+  return age === null ? "" : ` (${age} days ago)`;
+}
+
+function ageInDays(value: string | null | undefined): number | null {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return Math.max(0, Math.floor((Date.now() - date.getTime()) / 86_400_000));
+}
+
+function formatYearRange(start: number | null | undefined, end: number | null | undefined): string {
+  if (start === null || start === undefined || end === null || end === undefined) return "Not recorded";
+  return `${start}-${end}`;
+}
+
+function formatYearRangeFromList(years: number[] | undefined): string {
+  if (!years?.length) return "Not recorded";
+  return `${Math.min(...years)}-${Math.max(...years)}`;
+}
+
+function formatYearList(years: number[] | undefined): string {
+  return years?.length ? years.join(", ") : "none recorded";
+}
+
+function formatInteger(value: number | null | undefined): string {
+  return value === null || value === undefined ? "Not recorded" : value.toLocaleString();
+}
+
+function formatNumber(value: number | null | undefined): string {
+  return value === null || value === undefined ? "Not recorded" : value.toLocaleString(undefined, { maximumFractionDigits: 3 });
+}
+
+function formatCpueCheck(value: number | null | undefined): string {
+  return value === null || value === undefined ? "No data" : value.toFixed(6);
+}
+
+function formatBytes(value: number | null | undefined): string {
+  if (value === null || value === undefined) return "Not recorded";
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)} MB`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)} KB`;
+  return `${value} B`;
+}
+
+function countPair(pair: { expected?: number | null; actual?: number | null } | undefined): string {
+  if (!pair) return "Not recorded";
+  return `${formatInteger(pair.actual)} actual${pair.expected === null || pair.expected === undefined ? "" : ` / ${formatInteger(pair.expected)} reported by latest build`}`;
 }
 
 function defaultAnomalyRanges(): AnomalyRanges {
@@ -575,7 +833,7 @@ function closeChartModal(): void {
 
 function update(): void {
   syncControls();
-  history.replaceState(null, "", `${location.pathname}?${toQuery(state)}`);
+  history.replaceState(null, "", `${location.pathname}?${dashboardQuery()}`);
   const allRecords = recordsForState(data, state);
   const records = selectedPeriod(allRecords, state.startYear, state.endYear);
   renderWarnings(records);

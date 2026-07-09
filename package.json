@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "tsc && vite build",
+    "build:data-quality": "node scripts/build_data_quality.mjs",
+    "build": "npm run build:data-quality && tsc && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "lint": "eslint .",
     "test": "vitest run"

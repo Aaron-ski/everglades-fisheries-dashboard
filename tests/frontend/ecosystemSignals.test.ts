@@ -68,7 +68,8 @@ function mockData(): DashboardData {
         { type: "Feature", properties: { area_code: "A1", area_name: "Area 1" }, geometry: { type: "Polygon", coordinates: [] } },
         { type: "Feature", properties: { area_code: "A2", area_name: "Area 2" }, geometry: { type: "Polygon", coordinates: [] } }
       ]
-    }
+    },
+    dataQuality: null
   } as DashboardData;
 }
 

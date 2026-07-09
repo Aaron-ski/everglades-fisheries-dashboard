@@ -18,5 +18,13 @@ export default tseslint.config(
     rules: {
       "@typescript-eslint/no-explicit-any": "off"
     }
+  },
+  {
+    files: ["scripts/**/*.mjs"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "module",
+      globals: globals.node
+    }
   }
 );

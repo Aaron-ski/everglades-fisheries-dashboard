@@ -126,6 +126,7 @@ export interface DashboardData {
   coverage: Coverage;
   metadata: SourceMetadata;
   areasGeojson: GeoJSON.FeatureCollection;
+  dataQuality: DataQualitySummary | null;
 }
 
 export interface DashboardState {
@@ -154,4 +155,104 @@ export interface DisplayRecord {
   monthsPresent: number | null;
   isPartialYear: boolean | null;
   coverageStatus: string;
+}
+
+export type DataQualityStatus = "healthy" | "warning" | "stale" | "error" | "missing" | "passed" | "failed";
+
+export interface DataQualitySummary {
+  generatedAt?: string;
+  freshnessThresholdDays?: { warning?: number; stale?: number };
+  overallStatus?: {
+    status?: DataQualityStatus;
+    message?: string;
+    warnings?: string[];
+    errors?: string[];
+  };
+  officialSource?: {
+    title?: string;
+    dashboardTitle?: string;
+    sourcePage?: string | null;
+    catalogPage?: string | null;
+    retrievedAt?: string | null;
+    sourceFileCount?: number;
+    explanation?: string;
+  };
+  dateCoverage?: {
+    minEventDate?: string | null;
+    maxEventDate?: string | null;
+    minYear?: number | null;
+    maxYear?: number | null;
+    yearCount?: number;
+    missingYears?: number[];
+    everyYearPresent?: boolean;
+    partialYears?: number[];
+    interruptedYears?: number[];
+    note?: string;
+  };
+  freshness?: {
+    processedAt?: string | null;
+    sourceLastRetrievedAt?: string | null;
+    processedAgeDays?: number | null;
+    sourceAgeDays?: number | null;
+    needsResync?: boolean;
+    explanation?: string;
+  };
+  sourceIntegrity?: {
+    files?: Array<{
+      key?: string | null;
+      filename?: string | null;
+      url?: string | null;
+      retrievedAt?: string | null;
+      size?: number | null;
+      sha256Recorded?: boolean;
+      sha256Short?: string | null;
+      status?: string | number | null;
+    }>;
+    filesWithHashes?: number;
+    filesWithSizes?: number;
+    filesWithRetrievalTimestamps?: number;
+    note?: string;
+  };
+  validationSummary?: {
+    status?: DataQualityStatus;
+    totalChecks?: number | null;
+    passedChecks?: number | null;
+    failedChecks?: number | null;
+    warningCount?: number;
+    errorCount?: number;
+    yearsChecked?: number[];
+  };
+  rowCounts?: {
+    rawRecords?: number | null;
+    rawRecordsNote?: string;
+    processedAnnualAreaRecords?: { expected?: number | null; actual?: number | null };
+    processedAnnualRegionRecords?: { expected?: number | null; actual?: number | null };
+    speciesCount?: { expected?: number | null; actual?: number | null };
+    coverageAreaRows?: number | null;
+    coverageRegionRows?: number | null;
+    qualityFlaggedRecords?: number | null;
+    catchRecordsRepresented?: number | null;
+    note?: string;
+  };
+  cpueSpotChecks?: {
+    status?: DataQualityStatus;
+    method?: string;
+    rawDataAvailableInPublicBuild?: boolean;
+    checks?: Array<{
+      label?: string;
+      year?: number;
+      areaCode?: string;
+      areaName?: string;
+      species?: string;
+      catch?: number;
+      effortDenominator?: number;
+      processedCpue?: number;
+      recomputedCpue?: number;
+      absoluteDifference?: number;
+      tolerance?: number;
+      status?: DataQualityStatus;
+      method?: string;
+    }>;
+  };
+  limitations?: string[];
 }

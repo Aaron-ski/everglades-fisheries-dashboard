@@ -4,6 +4,7 @@ import type {
   AnnualRecord,
   CoverageArea,
   CoverageRegion,
+  DataQualitySummary,
   DashboardData,
   DashboardState,
   DisplayRecord,
@@ -18,16 +19,25 @@ async function fetchJson<T>(path: string): Promise<T> {
   return (await response.json()) as T;
 }
 
+async function fetchOptionalJson<T>(path: string): Promise<T | null> {
+  try {
+    return await fetchJson<T>(path);
+  } catch {
+    return null;
+  }
+}
+
 export async function loadDashboardData(): Promise<DashboardData> {
-  const [species, areaRecords, regionRecords, coverage, metadata, areasGeojson] = await Promise.all([
+  const [species, areaRecords, regionRecords, coverage, metadata, areasGeojson, dataQuality] = await Promise.all([
     fetchJson<DashboardData["species"]>("data/species.json"),
     fetchJson<DashboardData["areaRecords"]>("data/annual_species_area.json"),
     fetchJson<DashboardData["regionRecords"]>("data/annual_species_region.json"),
     fetchJson<DashboardData["coverage"]>("data/coverage.json"),
     fetchJson<DashboardData["metadata"]>("data/source_metadata.json"),
-    fetchJson<DashboardData["areasGeojson"]>("data/areas.geojson")
+    fetchJson<DashboardData["areasGeojson"]>("data/areas.geojson"),
+    fetchOptionalJson<DataQualitySummary>("data/data_quality_summary.json")
   ]);
-  return { species, areaRecords, regionRecords, coverage, metadata, areasGeojson };
+  return { species, areaRecords, regionRecords, coverage, metadata, areasGeojson, dataQuality };
 }
 
 export function speciesById(species: Species[]): Map<string, Species> {
